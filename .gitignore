@@ -22,3 +22,7 @@ bin/
 gen/
 out/
 target/
+
+# Gradle
+.gradle
+build
