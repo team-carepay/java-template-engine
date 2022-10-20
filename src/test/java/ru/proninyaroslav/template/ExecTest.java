@@ -466,7 +466,7 @@ public class ExecTest {
         }
     }
 
-    public class TestExec {
+    public static class TestExec {
         final String name;
         final String input;
         final String output;
