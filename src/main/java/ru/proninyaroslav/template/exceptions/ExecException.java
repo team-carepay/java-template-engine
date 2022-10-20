@@ -17,11 +17,11 @@
 package ru.proninyaroslav.template.exceptions;
 
 public class ExecException extends Exception {
-    public ExecException(Exception e) {
+    public ExecException(final Exception e) {
         super(e);
     }
 
-    public ExecException(String msg) {
+    public ExecException(final String msg) {
         super(msg);
     }
 }

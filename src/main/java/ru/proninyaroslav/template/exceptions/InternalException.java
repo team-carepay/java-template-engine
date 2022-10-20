@@ -17,11 +17,11 @@
 package ru.proninyaroslav.template.exceptions;
 
 public class InternalException extends Exception {
-    public InternalException(Exception e) {
+    public InternalException(final Exception e) {
         super(e);
     }
 
-    public InternalException(String msg) {
+    public InternalException(final String msg) {
         super(msg);
     }
 }

@@ -43,24 +43,24 @@ public class Tree {
     private List<String> vars;         /* variables defined at the moment */
     private Map<String, Tree> treeSet;
 
-    public Tree(String name, String parseName,
-                String text, FuncMap... funcs) {
+    public Tree(final String name, final String parseName,
+                final String text, final FuncMap... funcs) {
         this.name = name;
         this.parseName = parseName;
         this.text = text;
         this.funcs = funcs;
     }
 
-    public Tree(String name, FuncMap... funcs) {
+    public Tree(final String name, final FuncMap... funcs) {
         this.name = name;
         this.funcs = funcs;
     }
 
-    public static Map<String, Tree> parse(String name, String text,
-                                          String leftDelim, String rightDelim,
-                                          FuncMap... funcs) throws ParseException, InternalException {
-        Map<String, Tree> treeSet = new HashMap<>();
-        Tree tree = new Tree(name);
+    public static Map<String, Tree> parse(final String name, final String text,
+                                          final String leftDelim, final String rightDelim,
+                                          final FuncMap... funcs) throws ParseException, InternalException {
+        final Map<String, Tree> treeSet = new HashMap<>();
+        final Tree tree = new Tree(name);
         tree.text = text;
         tree.parse(text, leftDelim, rightDelim, treeSet, funcs);
 
@@ -70,14 +70,17 @@ public class Tree {
     /**
      * Reports whether this tree (node) is empty of everything but space
      */
-    public static boolean isEmptyTree(Node node) throws ParseException {
-        if (node == null)
+    public static boolean isEmptyTree(final Node node) throws ParseException {
+        if (node == null) {
             return true;
+        }
 
         if (node instanceof Node.Sequence) {
-            for (Node n : ((Node.Sequence) node).nodes)
-                if (isEmptyTree(n))
+            for (Node n : ((Node.Sequence) node).nodes) {
+                if (isEmptyTree(n)) {
                     return false;
+                }
+            }
             return true;
         } else if (node instanceof Node.Text) {
             return ((Node.Text) node).text.trim().length() == 0;
@@ -92,41 +95,41 @@ public class Tree {
         return false;
     }
 
-    private void parse(String text, String leftDelim, String rightDelim,
-                       Map<String, Tree> treeSet, FuncMap... funcs) throws ParseException, InternalException {
+    private void parse(final String text, final String leftDelim, final String rightDelim,
+                       final Map<String, Tree> treeSet, final FuncMap... funcs) throws ParseException, InternalException {
         try {
-            parseName = name;
+            this.parseName = name;
             startParse(funcs, new Lexer(name, text, leftDelim, rightDelim), treeSet);
             this.text = text;
             parse();
             add();
         } finally {
-            lex.drain();
+            this.lex.drain();
             stopParse();
         }
     }
 
-    private void startParse(FuncMap[] funcs, Lexer lex, Map<String, Tree> treeSet) {
+    private void startParse(final FuncMap[] funcs, final Lexer lex, final Map<String, Tree> treeSet) {
         this.lex = lex;
         this.funcs = funcs;
         this.treeSet = treeSet;
-        vars = new ArrayList<>();
-        vars.add("$");
+        this.vars = new ArrayList<>();
+        this.vars.add("$");
     }
 
     private void stopParse() {
-        lex = null;
-        vars = null;
-        funcs = null;
-        treeSet = null;
-        forDepth = 0;
+        this.lex = null;
+        this.vars = null;
+        this.funcs = null;
+        this.treeSet = null;
+        this.forDepth = 0;
     }
 
     /**
      * Adds tree to treeSet
      */
     private void add() throws ParseException {
-        Tree tree = treeSet.get(name);
+        final Tree tree = treeSet.get(name);
         if (tree == null || isEmptyTree(root)) {
             treeSet.put(name, this);
             return;
@@ -136,11 +139,12 @@ public class Tree {
             errorf("template: multiple definition of template %s", name);
     }
 
-    public String errorLocation(Node node) {
+    public String errorLocation(final Node node) {
         Tree tree = node.tree;
-        if (tree == null)
+        if (tree == null) {
             tree = this;
-        String text = tree.text.substring(0, node.pos);
+        }
+        final String text = tree.text.substring(0, node.pos);
         int index = text.lastIndexOf('\n');
         if (index == -1) {
             index = node.pos; /* On first line */
@@ -148,21 +152,22 @@ public class Tree {
             ++index; /* After newline */
             index = node.pos = index;
         }
-        int lineNum = Utils.countChars(text, '\n');
+        final int lineNum = Utils.countChars(text, '\n');
 
         return String.format("%s:%d:%d", tree.parseName, lineNum, index);
     }
 
-    public String errorContext(Node node) {
+    public String errorContext(final Node node) {
         String context = node.toString();
-        if (context.length() > 20)
+        if (context.length() > 20) {
             context = String.format("%.20s...", context);
+        }
 
         return context;
     }
 
-    private void errorf(String format, Object... args) throws ParseException {
-        root = null;
+    private void errorf(final String format, final Object... args) throws ParseException {
+        this.root = null;
         throw new ParseException(
                 String.format(String.format("%s:%d: %s", parseName, token[0].line, format),
                         args));
@@ -179,7 +184,7 @@ public class Tree {
      * Backs the input stream up two tokens.
      * The zeroth token is already there
      */
-    private void backupTwo(Token t) {
+    private void backupTwo(final Token t) {
         token[1] = t;
         peekCount = 2;
     }
@@ -188,7 +193,7 @@ public class Tree {
      * Backs the input stream up three tokens.
      * The zeroth token is already there
      */
-    private void backupThree(Token t2, Token t1) /* Reverse order: we're pushing back */ {
+    private void backupThree(final Token t2, final Token t1) /* Reverse order: we're pushing back */ {
         token[1] = t1;
         token[2] = t2;
         peekCount = 3;
@@ -198,8 +203,9 @@ public class Tree {
      * Returns but does not consume the next token
      */
     private Token peek() throws InternalException {
-        if (peekCount > 0)
+        if (peekCount > 0) {
             return token[peekCount - 1];
+        }
         peekCount = 1;
         token[0] = lex.nextToken();
 
@@ -209,8 +215,9 @@ public class Tree {
     private Token peekNonSpace() throws InternalException {
         Token token = next();
         for (; ; ) {
-            if (token.type != Token.Type.SPACE)
+            if (token.type != Token.Type.SPACE) {
                 break;
+            }
             token = next();
         }
         backup();
@@ -219,19 +226,20 @@ public class Tree {
     }
 
     private Token next() throws InternalException {
-        if (peekCount > 0)
+        if (peekCount > 0) {
             --peekCount;
-        else
+        } else {
             token[0] = lex.nextToken();
-
+        }
         return token[peekCount];
     }
 
     private Token nextNonSpace() throws InternalException {
         Token token = next();
         for (; ; ) {
-            if (token.type != Token.Type.SPACE)
+            if (token.type != Token.Type.SPACE) {
                 break;
+            }
             token = next();
         }
 
@@ -241,10 +249,11 @@ public class Tree {
     /**
      * Consumes the next token and guarantees it has the required type
      */
-    private Token expect(Token.Type expected, String context) throws ParseException, InternalException {
-        Token token = nextNonSpace();
-        if (token.type != expected)
+    private Token expect(final Token.Type expected, final String context) throws ParseException, InternalException {
+        final Token token = nextNonSpace();
+        if (token.type != expected) {
             unexpected(token, context);
+        }
 
         return token;
     }
@@ -252,26 +261,29 @@ public class Tree {
     /**
      * Consumes the next token and guarantees it has one of the required types
      */
-    private Token expectOneOf(Token.Type expected1,
-                              Token.Type expected2,
-                              String context) throws ParseException, InternalException {
-        Token token = nextNonSpace();
-        if (token.type != expected1 && token.type != expected2)
+    private Token expectOneOf(final Token.Type expected1,
+                              final Token.Type expected2,
+                              final String context) throws ParseException, InternalException {
+        final Token token = nextNonSpace();
+        if (token.type != expected1 && token.type != expected2) {
             unexpected(token, context);
+        }
 
         return token;
     }
 
-    private void unexpected(Token token, String context) throws ParseException {
+    private void unexpected(final Token token, final String context) throws ParseException {
         errorf("unexpected %s in %s", token, context);
     }
 
-    private boolean hasFunction(String name) {
-        for (FuncMap funcMap : funcs) {
-            if (funcMap == null)
+    private boolean hasFunction(final String name) {
+        for (final FuncMap funcMap : funcs) {
+            if (funcMap == null) {
                 continue;
-            if (funcMap.contains(name))
+            }
+            if (funcMap.contains(name)) {
                 return true;
+            }
         }
 
         return false;
@@ -281,11 +293,13 @@ public class Tree {
      * Returns a node for a variable reference.
      * It errors if the variable is not defined
      */
-    private Node useVar(int pos, String name) throws ParseException {
-        Node.Assign var = newVariable(pos, name);
-        for (String varName : vars)
-            if (var.ident.get(0).equals(varName))
+    private Node useVar(final int pos, final String name) throws ParseException {
+        final Node.Assign var = newVariable(pos, name);
+        for (final String varName : vars) {
+            if (var.ident.get(0).equals(varName)) {
                 return var;
+            }
+        }
         errorf("undefined variable %s", name);
 
         return null;
@@ -294,7 +308,7 @@ public class Tree {
     /**
      * Trims the variable list to the specified length
      */
-    private void popVars(int n) {
+    private void popVars(final int n) {
         vars = new ArrayList<>(vars.subList(0, n));
     }
 
@@ -302,22 +316,23 @@ public class Tree {
         root = newList(peek().pos);
         while (peek().type != Token.Type.EOF) {
             if (peek().type == Token.Type.LEFT_DELIM) {
-                Token delim = next();
+                final Token delim = next();
                 if (nextNonSpace().type == Token.Type.DEFINE) {
                     /* Name will be updated once we know it */
-                    Tree newTree = new Tree("definition", parseName, text);
+                    final Tree newTree = new Tree("definition", parseName, text);
                     newTree.startParse(funcs, lex, treeSet);
                     newTree.parseDefinition();
                     continue;
                 }
                 backupTwo(delim);
             }
-            Node n = textOrAction();
+            final Node n = textOrAction();
             if (n == null || n.type == Node.Type.END ||
-                    n.type == Node.Type.ELSE)
+                    n.type == Node.Type.ELSE) {
                 errorf("unexpected %s", n);
-            else
+            } else {
                 root.append(n);
+            }
         }
     }
 
@@ -328,7 +343,7 @@ public class Tree {
      */
     private void parseDefinition() throws ParseException, InternalException {
         final String context = "define clause";
-        Token name = expectOneOf(Token.Type.STRING, Token.Type.RAW_STRING, context);
+        final Token name = expectOneOf(Token.Type.STRING, Token.Type.RAW_STRING, context);
         try {
             this.name = Utils.unquote(name.val);
         } catch (IllegalArgumentException e) {
@@ -336,12 +351,13 @@ public class Tree {
         }
         expect(Token.Type.RIGHT_DELIM, context);
 
-        Node.Sequence[] outRoot = new Node.Sequence[1];
-        Node[] outEnd = new Node[1];
+        final Node.Sequence[] outRoot = new Node.Sequence[1];
+        final Node[] outEnd = new Node[1];
         tokenList(outRoot, outEnd);
         root = outRoot[0];
-        if (outEnd[0].type != Node.Type.END)
+        if (outEnd[0].type != Node.Type.END) {
             errorf("unexpected %s in %s", outEnd[0], context);
+        }
         add();
         stopParse();
     }
@@ -351,7 +367,7 @@ public class Tree {
      * textOrAction*
      * Terminates at {end} or {else}, returned separately
      */
-    private void tokenList(Node.Sequence[] outSequence, Node[] outNode) throws ParseException, InternalException {
+    private void tokenList(final Node.Sequence[] outSequence, final Node[] outNode) throws ParseException, InternalException {
         outSequence[0] = newList(peekNonSpace().pos);
         while (peekNonSpace().type != Token.Type.EOF) {
             outNode[0] = textOrAction();
@@ -370,7 +386,7 @@ public class Tree {
      * text | action
      */
     private Node textOrAction() throws ParseException, InternalException {
-        Token token = nextNonSpace();
+        final Token token = nextNonSpace();
         switch (token.type) {
             case TEXT:
                 return newText(token.pos, token.val);
@@ -421,11 +437,11 @@ public class Tree {
      * pipeline:
      * declaration? command ('|' command)*
      */
-    private Node.Pipe pipeline(String context) throws ParseException, InternalException {
-        List<Node.Assign> vars = new ArrayList<>();
+    private Node.Pipe pipeline(final String context) throws ParseException, InternalException {
+        final List<Node.Assign> vars = new ArrayList<>();
         boolean decl = false;
-        int pos = peekNonSpace().pos;
-        Token v = peekNonSpace();
+        final int pos = peekNonSpace().pos;
+        final Token v = peekNonSpace();
         if (v.type == Token.Type.VARIABLE) {
             next();
             /*
@@ -433,8 +449,8 @@ public class Tree {
              * the worst case: in "$x foo" we need to read "foo" (as opposed to "=")
              * to know that $x is an argument variable rather than a declaration.
              */
-            Token tokenAfterVariable = peek();
-            Token next = peekNonSpace();
+            final Token tokenAfterVariable = peek();
+            final Token next = peekNonSpace();
             if (next.type == Token.Type.ASSIGN || next.type == Token.Type.DECLARE) {
                 nextNonSpace();
                 vars.add(newVariable(v.pos, v.val));
@@ -447,10 +463,10 @@ public class Tree {
             }
         }
 
-        Node.Pipe pipe = newPipeline(pos, vars);
+        final Node.Pipe pipe = newPipeline(pos, vars);
         pipe.decl = decl;
         for (; ; ) {
-            Token token = nextNonSpace();
+            final Token token = nextNonSpace();
             switch (token.type) {
                 case RIGHT_DELIM:
                 case RIGHT_PAREN:
@@ -479,13 +495,14 @@ public class Tree {
         }
     }
 
-    private void checkPipeline(Node.Pipe pipe, String context) throws ParseException {
+    private void checkPipeline(final Node.Pipe pipe, final String context) throws ParseException {
         /* Reject empty pipelines */
-        if (pipe.cmds.size() == 0)
+        if (pipe.cmds.size() == 0) {
             errorf("missing value for %s", context);
+        }
         /* Only the first command of a pipeline can start with a non-executable operand */
         for (int i = 1; i < pipe.cmds.size(); i++) {
-            Node.Command c = pipe.cmds.get(i);
+            final Node.Command c = pipe.cmds.get(i);
             switch (c.args.get(0).type) {
                 case BOOL:
                 case DOT:
@@ -504,14 +521,15 @@ public class Tree {
      * We consume the pipe character but leave the right delim to terminate the action
      */
     private Node.Command command() throws ParseException, InternalException {
-        Node.Command cmd = newCommand(peekNonSpace().pos);
+        final Node.Command cmd = newCommand(peekNonSpace().pos);
         for (; ; ) {
             /* Skip leading spaces */
             peekNonSpace();
-            Node operand = operand();
-            if (operand != null)
+            final Node operand = operand();
+            if (operand != null) {
                 cmd.append(operand);
-            Token token = next();
+            }
+            final Token token = next();
             switch (token.type) {
                 case SPACE:
                     continue;
@@ -545,12 +563,14 @@ public class Tree {
      */
     private Node operand() throws ParseException, InternalException {
         Node node = term();
-        if (node == null)
+        if (node == null) {
             return null;
+        }
         if (peek().type == Token.Type.FIELD) {
-            Node.Chain chain = newChain(peek().pos, node);
-            while (peek().type == Token.Type.FIELD)
+            final Node.Chain chain = newChain(peek().pos, node);
+            while (peek().type == Token.Type.FIELD) {
                 chain.add(next().val);
+            }
             /*
              * Obvious parsing errors involving literal values are detected here.
              * More complex error cases will have to be handled at execution time.
@@ -587,14 +607,14 @@ public class Tree {
      * A null return means the next item is not a term
      */
     private Node term() throws ParseException, InternalException {
-        Token token = nextNonSpace();
+        final Token token = nextNonSpace();
         switch (token.type) {
             case ERROR:
                 errorf("%s", token.val);
             case IDENTIFIER:
                 if (!hasFunction(token.val))
                     errorf("function '%s' not defined", token.val);
-                Node.Identifier i = newIdentifier(token.pos, token.val);
+                final Node.Identifier i = newIdentifier(token.pos, token.val);
                 i.tree = this;
                 return i;
             case DOT:
@@ -611,10 +631,11 @@ public class Tree {
             case NUMBER:
                 return newNumber(token.pos, token.val, token.type);
             case LEFT_PAREN:
-                Node.Pipe pipe = pipeline("parenthesized pipeline");
-                Token t = next();
-                if (t.type != Token.Type.RIGHT_PAREN)
+                final Node.Pipe pipe = pipeline("parenthesized pipeline");
+                final Token t = next();
+                if (t.type != Token.Type.RIGHT_PAREN) {
                     errorf("unclosed right paren: unexpected %s", token);
+                }
                 return pipe;
             case STRING:
             case RAW_STRING:
@@ -637,7 +658,7 @@ public class Tree {
      */
     private Node elseControl() throws ParseException, InternalException {
         /* Special case for "else if" */
-        Token peek = peekNonSpace();
+        final Token peek = peekNonSpace();
         if (peek.type == Token.Type.IF) {
             /* We see "{else if ... " but in effect rewrite it to {else}{if ... " */
             return newElse(peek.pos);
@@ -661,8 +682,8 @@ public class Tree {
      */
     private Node templateControl() throws ParseException, InternalException {
         final String context = "template clause";
-        Token token = nextNonSpace();
-        String name = parseTemplateName(token, context);
+        final Token token = nextNonSpace();
+        final String name = parseTemplateName(token, context);
         Node.Pipe pipe = null;
         if (nextNonSpace().type != Token.Type.RIGHT_DELIM) {
             backup();
@@ -675,10 +696,11 @@ public class Tree {
 
     private String parseTemplateName(Token token, String context) throws ParseException {
         String name = "";
-        if (token.type == Token.Type.STRING || token.type == Token.Type.RAW_STRING)
+        if (token.type == Token.Type.STRING || token.type == Token.Type.RAW_STRING) {
             name = Utils.unquote(token.val);
-        else
+        } else {
             unexpected(token, context);
+        }
 
         return name;
     }
@@ -689,10 +711,10 @@ public class Tree {
      * {{if pipeline}} tokenList {{else}} tokenList {{end}}
      */
     private Node ifControl() throws ParseException, InternalException {
-        int[] outPos = new int[1];
-        Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.Sequence[] outSequence = new Node.Sequence[1];
-        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        final int[] outPos = new int[1];
+        final Node.Pipe[] outPipe = new Node.Pipe[1];
+        final Node.Sequence[] outSequence = new Node.Sequence[1];
+        final Node.Sequence[] outElseSequence = new Node.Sequence[1];
         parseControl(true, "if", outPos, outPipe, outSequence, outElseSequence);
 
         return newIf(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
@@ -704,10 +726,10 @@ public class Tree {
      * {{for pipeline}} tokenList {{else}} tokenList {{end}}
      */
     private Node forControl() throws ParseException, InternalException {
-        int[] outPos = new int[1];
-        Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.Sequence[] outSequence = new Node.Sequence[1];
-        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        final int[] outPos = new int[1];
+        final Node.Pipe[] outPipe = new Node.Pipe[1];
+        final Node.Sequence[] outSequence = new Node.Sequence[1];
+        final Node.Sequence[] outElseSequence = new Node.Sequence[1];
         parseControl(false, "for", outPos, outPipe, outSequence, outElseSequence);
 
         return newFor(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
@@ -718,8 +740,9 @@ public class Tree {
      * {{break}}
      */
     private Node breakControl() throws ParseException, InternalException {
-        if (forDepth == 0)
+        if (forDepth == 0) {
             errorf("unexpected break outside of for");
+        }
 
         return newBreak(expect(Token.Type.RIGHT_DELIM, "break").pos);
     }
@@ -729,8 +752,9 @@ public class Tree {
      * {{continue}}
      */
     private Node continueControl() throws ParseException, InternalException {
-        if (forDepth == 0)
+        if (forDepth == 0) {
             errorf("unexpected continue outside of for");
+        }
 
         return newContinue(expect(Token.Type.RIGHT_DELIM, "continue").pos);
     }
@@ -741,29 +765,31 @@ public class Tree {
      * {{with pipeline}} tokenList {{else}} tokenList {{end}}
      */
     private Node withControl() throws ParseException, InternalException {
-        int[] outPos = new int[1];
-        Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.Sequence[] outSequence = new Node.Sequence[1];
-        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        final int[] outPos = new int[1];
+        final Node.Pipe[] outPipe = new Node.Pipe[1];
+        final Node.Sequence[] outSequence = new Node.Sequence[1];
+        final Node.Sequence[] outElseSequence = new Node.Sequence[1];
         parseControl(false, "with", outPos, outPipe, outSequence, outElseSequence);
 
         return newWith(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
     }
 
-    private void parseControl(boolean allowElseIf, String context,
-                              int[] outPos, Node.Pipe[] outPipe,
-                              Node.Sequence[] outSequence, Node.Sequence[] outElseSequence) throws ParseException, InternalException {
-        int varsSize = vars.size();
+    private void parseControl(final boolean allowElseIf, final String context,
+                              final int[] outPos, final Node.Pipe[] outPipe,
+                              final Node.Sequence[] outSequence, final Node.Sequence[] outElseSequence) throws ParseException, InternalException {
+        final int varsSize = vars.size();
         try {
             outPipe[0] = pipeline(context);
-            Node[] next = new Node[1];
-            if (context.equals("for"))
+            final Node[] next = new Node[1];
+            if (context.equals("for")) {
                 ++forDepth;
+            }
             tokenList(outSequence, next);
-            if (context.equals("for"))
+            if (context.equals("for")) {
                 --forDepth;
+            }
 
-            if (next[0].type == Node.Type.ELSE)
+            if (next[0].type == Node.Type.ELSE) {
                 if (allowElseIf && peek().type == Token.Type.IF) {
                     /*
                      * Special case for "else if". If the "else" is followed immediately by an "if",
@@ -784,74 +810,76 @@ public class Tree {
                     if (next[0].type != Node.Type.END)
                         errorf("expected end; found %s", next[0]);
                 }
+            }
         } finally {
             popVars(varsSize);
         }
         outPos[0] = outPipe[0].pos;
     }
 
-    Node.Sequence newList(int pos) {
+    Node.Sequence newList(final int pos) {
         return new Node.Sequence(this, pos);
     }
 
-    Node.Text newText(int pos, String text) {
+    Node.Text newText(final int pos, final String text) {
         return new Node.Text(this, pos, text);
     }
 
-    Node.Pipe newPipeline(int pos, List<Node.Assign> decl) {
+    Node.Pipe newPipeline(final int pos, final List<Node.Assign> decl) {
         return new Node.Pipe(this, pos, decl);
     }
 
-    Node.Assign newVariable(int pos, String ident) {
+    Node.Assign newVariable(final int pos, final String ident) {
         return new Node.Assign(this, pos, Arrays.asList(ident.split("\\.")));
     }
 
-    Node.Command newCommand(int pos) {
+    Node.Command newCommand(final int pos) {
         return new Node.Command(this, pos);
     }
 
-    Node.Action newAction(int pos, Node.Pipe pipe) {
+    Node.Action newAction(final int pos, final Node.Pipe pipe) {
         return new Node.Action(this, pos, pipe);
     }
 
-    Node.Identifier newIdentifier(int pos, String ident) {
+    Node.Identifier newIdentifier(final int pos, final String ident) {
         return new Node.Identifier(this, pos, ident);
     }
 
-    Node.Dot newDot(int pos) {
+    Node.Dot newDot(final int pos) {
         return new Node.Dot(this, pos);
     }
 
-    Node.Null newNull(int pos) {
+    Node.Null newNull(final int pos) {
         return new Node.Null(this, pos);
     }
 
-    Node.Field newField(int pos, String ident) {
+    Node.Field newField(final int pos, final String ident) {
         /* substring(1) to drop leading dot */
         return new Node.Field(this, pos, Arrays.asList(ident.substring(1).split("\\.")));
     }
 
-    Node.Chain newChain(int pos, Node node) {
+    Node.Chain newChain(final int pos, final Node node) {
         return new Node.Chain(this, pos, node);
     }
 
-    Node.Bool newBool(int pos, boolean boolVal) {
+    Node.Bool newBool(final int pos, final boolean boolVal) {
         return new Node.Bool(this, pos, boolVal);
     }
 
-    Node.Number newNumber(int pos, String text, Token.Type type) throws ParseException {
-        Node.Number n = new Node.Number(this, pos, text);
+    Node.Number newNumber(final int pos, final String text, final Token.Type type) throws ParseException {
+        final Node.Number n = new Node.Number(this, pos, text);
         if (type == Token.Type.CHAR_CONSTANT) {
             char c;
-            StringBuilder tail = new StringBuilder();
+            final StringBuilder tail = new StringBuilder();
             try {
                 c = Utils.unquoteChar(text.substring(1),
                         text.charAt(0), tail);
             } catch (IllegalArgumentException e) {
                 throw new ParseException(e);
             }
-            if (!tail.toString().equals("'"))
+            if (!tail.toString().equals("'")) {
                 throw new ParseException(String.format("malformed character constant: %s", text));
+            }
             n.isInt = true;
             n.intVal = c;
             n.isFloat = true;
@@ -860,26 +888,30 @@ public class Tree {
             return n;
         }
 
-        boolean isNegative = text.startsWith("-");
+        final boolean isNegative = text.startsWith("-");
         /* Trim leading sign */
         String unsignedNum;
-        if (isNegative || text.startsWith("+"))
+        if (isNegative || text.startsWith("+")) {
             unsignedNum = text.substring(1);
-        else
+        } else {
             unsignedNum = text;
-        if (!isNegative && unsignedNum.startsWith("-"))
+        }
+        if (!isNegative && unsignedNum.startsWith("-")) {
             throw new ParseException(String.format("illegal number syntax: %s", text));
+        }
         try {
             long i; /* This is long for int overflow detection */
-            if (unsignedNum.toLowerCase().startsWith("0x")) /* Is hex */
+            if (unsignedNum.toLowerCase().startsWith("0x")) {  /* Is hex */
                 /* Ignore leading 0x */
                 i = Long.parseLong(unsignedNum.substring(2), 16);
-            else if (text.charAt(0) == '0') /* Is octal */
+            } else if (text.charAt(0) == '0') { /* Is octal */
                 i = Long.parseLong(unsignedNum, 8);
-            else
+            } else {
                 i = Long.parseLong(unsignedNum);
-            if (i > Integer.MAX_VALUE || i < Integer.MIN_VALUE)
+            }
+            if (i > Integer.MAX_VALUE || i < Integer.MIN_VALUE) {
                 throw new ParseException(String.format("integer overflow: %s", text));
+            }
             n.isInt = true;
             n.intVal = (int) i;
         } catch (NumberFormatException e) {
@@ -892,14 +924,15 @@ public class Tree {
             n.floatVal = n.intVal;
         } else {
             try {
-                double f = Double.parseDouble(unsignedNum);
+                final double f = Double.parseDouble(unsignedNum);
                 /*
                  * If we parsed it as a float, but it
                  * looks like an integer, it's a huge number
                  * too large to fit in a long. Reject it
                  */
-                if (!Utils.containsAny(unsignedNum, ".eE"))
+                if (!Utils.containsAny(unsignedNum, ".eE")) {
                     throw new ParseException(String.format("integer overflow: %s", text));
+                }
                 n.isFloat = true;
                 n.floatVal = f;
                 /*
@@ -919,48 +952,49 @@ public class Tree {
             n.floatVal = -n.floatVal;
         }
 
-        if (!n.isInt && !n.isFloat)
+        if (!n.isInt && !n.isFloat) {
             throw new ParseException(String.format("illegal number syntax: %s", text));
+        }
 
         return n;
     }
 
-    Node.StringConst newString(int pos, String orig, String text) {
+    Node.StringConst newString(final int pos, final String orig, final String text) {
         return new Node.StringConst(this, pos, orig, text);
     }
 
-    Node.End newEnd(int pos) {
+    Node.End newEnd(final int pos) {
         return new Node.End(this, pos);
     }
 
-    Node.Else newElse(int pos) {
+    Node.Else newElse(final int pos) {
         return new Node.Else(this, pos);
     }
 
-    Node.If newIf(int pos, Node.Pipe pipe,
-                  Node.Sequence sequence, Node.Sequence elseSequence) {
+    Node.If newIf(final int pos, final Node.Pipe pipe,
+                  final Node.Sequence sequence, final Node.Sequence elseSequence) {
         return new Node.If(this, pos, pipe, sequence, elseSequence);
     }
 
-    Node.For newFor(int pos, Node.Pipe pipe,
-                    Node.Sequence sequence, Node.Sequence elseSequence) {
+    Node.For newFor(final int pos, final Node.Pipe pipe,
+                    final Node.Sequence sequence, final Node.Sequence elseSequence) {
         return new Node.For(this, pos, pipe, sequence, elseSequence);
     }
 
-    Node.Break newBreak(int pos) {
+    Node.Break newBreak(final int pos) {
         return new Node.Break(this, pos);
     }
 
-    Node.Continue newContinue(int pos) {
+    Node.Continue newContinue(final int pos) {
         return new Node.Continue(this, pos);
     }
 
-    Node.With newWith(int pos, Node.Pipe pipe,
-                      Node.Sequence sequence, Node.Sequence elseSequence) {
+    Node.With newWith(final int pos, final Node.Pipe pipe,
+                      final Node.Sequence sequence, final Node.Sequence elseSequence) {
         return new Node.With(this, pos, pipe, sequence, elseSequence);
     }
 
-    Node.Template newTemplate(int pos, String name, Node.Pipe pipe) {
+    Node.Template newTemplate(final int pos, final String name, final Node.Pipe pipe) {
         return new Node.Template(this, pos, name, pipe);
     }
 }

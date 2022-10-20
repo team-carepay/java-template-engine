@@ -41,19 +41,19 @@ class Lexer implements Runnable {
     private int parenDepth;         /* nesting depth of ( ) exprs */
     private int line;               /* 1 + number of newlines seen */
 
-    public Lexer(String name, String input, String leftDelim, String rightDelim) {
+    public Lexer(final String name, final String input, final String leftDelim, final String rightDelim) {
         this.name = name;
         this.input = input;
         this.leftDelim = (leftDelim == null ? defaultLeftDelim : leftDelim);
         this.rightDelim = (rightDelim == null ? defaultRightDelim : rightDelim);
-        tokens = new LinkedBlockingQueue<>();
-        line = 1;
+        this.tokens = new LinkedBlockingQueue<>();
+        this.line = 1;
 
         new Thread(this).start();
     }
 
     private static Map<String, Token.Type> initWords() {
-        Map<String, Token.Type> map = new HashMap<>();
+        final Map<String, Token.Type> map = new HashMap<>();
 
         map.put(".", Token.Type.DOT);
         map.put("define", Token.Type.DEFINE);
@@ -99,7 +99,7 @@ class Lexer implements Runnable {
         return token;
     }
 
-    private State callStateFn(State state) {
+    private State callStateFn(final State state) {
         switch (state) {
             case lexText:
                 return lexText();
@@ -145,7 +145,7 @@ class Lexer implements Runnable {
      * Peek returns but does not consume the next character in the input
      */
     private char peek() {
-        char c = next();
+        final char c = next();
         backup();
 
         return c;
@@ -160,14 +160,14 @@ class Lexer implements Runnable {
             return EOF;
         }
 
-        char c = input.charAt(pos++);
+        final char c = input.charAt(pos++);
         if (c == '\n')
             ++line;
 
         return c;
     }
 
-    private int countNewlines(String s) {
+    private int countNewlines(final String s) {
         int count = 0;
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) == '\n')
@@ -177,8 +177,8 @@ class Lexer implements Runnable {
         return count;
     }
 
-    private void emit(Token.Type type) throws InternalError {
-        String val = input.substring(start, pos);
+    private void emit(final Token.Type type) throws InternalError {
+        final String val = input.substring(start, pos);
         if (!tokens.offer(new Token(type, start, val, line)))
             throw new InternalError("lex queue is full: " + tokens.size());
         /* Some items contain text internally. If so, count their newlines */
@@ -193,7 +193,7 @@ class Lexer implements Runnable {
         start = pos;
     }
 
-    private State errorf(String format, Object... args) {
+    private State errorf(final String format, final Object... args) {
         tokens.add(new Token(Token.Type.ERROR, start, String.format(format, args), line));
 
         return null;
@@ -209,7 +209,7 @@ class Lexer implements Runnable {
     /**
      * Accept advances the lexer if the next character is in valid
      */
-    private boolean accept(String valid) {
+    private boolean accept(final String valid) {
         if (valid.indexOf(next()) >= 0)
             return true;
         backup();
@@ -220,7 +220,7 @@ class Lexer implements Runnable {
     /**
      * Advances position as long as the current character is in valid
      */
-    private void acceptAll(String valid) {
+    private void acceptAll(final String valid) {
         while (valid.indexOf(next()) >= 0) ;
 
         backup();
@@ -230,11 +230,12 @@ class Lexer implements Runnable {
      * Scans until an opening action delimiter
      */
     private State lexText() {
-        int i = input.substring(pos).indexOf(leftDelim);
+        final int i = input.substring(pos).indexOf(leftDelim);
         if (i >= 0) {
             pos += i;
-            if (pos > start)
+            if (pos > start) {
                 emit(Token.Type.TEXT);
+            }
             ignore();
 
             return State.lexLeftDelim;
@@ -243,8 +244,9 @@ class Lexer implements Runnable {
         }
 
         /* Correctly reached EOF */
-        if (pos > start)
+        if (pos > start) {
             emit(Token.Type.TEXT);
+        }
         emit(Token.Type.EOF);
 
         return null;
@@ -268,13 +270,15 @@ class Lexer implements Runnable {
      */
     private State lexComment() {
         pos += leftComment.length();
-        int i = input.substring(pos).indexOf(rightComment);
-        if (i < 0)
+        final int i = input.substring(pos).indexOf(rightComment);
+        if (i < 0) {
             return errorf("unclosed comment");
+        }
         pos += i + rightComment.length();
 
-        if (!input.startsWith(rightDelim, pos))
+        if (!input.startsWith(rightDelim, pos)) {
             return errorf("comment ends before closing delimiter");
+        }
         pos += rightDelim.length();
         ignore();
 
@@ -292,12 +296,13 @@ class Lexer implements Runnable {
          */
 
         if (input.startsWith(rightDelim, pos)) {
-            if (parenDepth == 0)
+            if (parenDepth == 0) {
                 return State.lexRightDelim;
+            }
             return errorf("unclosed left paren");
         }
 
-        char c = next();
+        final char c = next();
         if (c == EOF || Utils.isEndOfLine(c)) {
             return errorf("unclosed action");
         } else if (Utils.isSpace(c)) {
@@ -321,7 +326,7 @@ class Lexer implements Runnable {
         } else if (c == '.') {
             /* special look-ahead for ".field" so we don't break backup() */
             if (pos < input.length()) {
-                char ch = input.charAt(pos);
+                final char ch = input.charAt(pos);
                 if (ch < '0' || ch > '9')
                     return State.lexField;
             }
@@ -363,8 +368,9 @@ class Lexer implements Runnable {
      * One space has already been seen
      */
     private State lexSpace() {
-        while (Utils.isSpace(peek()))
+        while (Utils.isSpace(peek())) {
             next();
+        }
         emit(Token.Type.SPACE);
 
         return State.lexInsideAction;
@@ -378,7 +384,7 @@ class Lexer implements Runnable {
         for (; ; ) {
             switch (next()) {
                 case '\\':
-                    char c = next();
+                    final char c = next();
                     if (c != EOF && c != '\n')
                         break;
                 case EOF:
@@ -397,7 +403,7 @@ class Lexer implements Runnable {
      * Scans a raw quoted string (`test`)
      */
     private State lexRawQuote() {
-        int startLine = line;
+        final int startLine = line;
         loop:
         for (; ; ) {
             switch (next()) {
@@ -439,7 +445,7 @@ class Lexer implements Runnable {
      * appear after an identifier. Breaks .X.Y into two pieces
      */
     private boolean atTerminator() {
-        char c = peek();
+        final char c = peek();
         if (Utils.isSpace(c) || Utils.isEndOfLine(c))
             return true;
         // TODO: perhaps add arithmetic
@@ -464,12 +470,13 @@ class Lexer implements Runnable {
      * Scans a field or variable: [.$]alphanumeric.
      * The . or $ has been scanned
      */
-    private State lexFieldOrVariable(Token.Type type) {
+    private State lexFieldOrVariable(final Token.Type type) {
         if (atTerminator()) {
-            if (type == Token.Type.VARIABLE)
+            if (type == Token.Type.VARIABLE) {
                 emit(Token.Type.VARIABLE);
-            else
+            } else {
                 emit(Token.Type.DOT);
+            }
 
             return State.lexInsideAction;
         }
@@ -481,8 +488,9 @@ class Lexer implements Runnable {
                 break;
             }
         }
-        if (!atTerminator())
+        if (!atTerminator()) {
             return errorf("bad character %c", c);
+        }
         emit(type);
 
         return State.lexInsideAction;
@@ -520,8 +528,9 @@ class Lexer implements Runnable {
         accept("+-");
         String digits = "0123456789";
         /* It's hex? */
-        if (accept("0") && accept("xX"))
+        if (accept("0") && accept("xX")) {
             digits = "0123456789abcdefABCDEF";
+        }
 
         acceptAll(digits);
         if (accept("."))
@@ -545,21 +554,23 @@ class Lexer implements Runnable {
      */
     private State lexIdentifier() {
         for (; ; ) {
-            char c = next();
+            final char c = next();
             if (!Utils.isAlphaNumeric(c)) {
                 backup();
-                String word = input.substring(start, pos);
-                if (!atTerminator())
+                final String word = input.substring(start, pos);
+                if (!atTerminator()) {
                     return errorf("bad character %c", c);
-                Token.Type key = words.get(word);
-                if (key != null)
+                }
+                final Token.Type key = words.get(word);
+                if (key != null) {
                     emit(key);
-                else if (word.charAt(0) == '.')
+                } else if (word.charAt(0) == '.') {
                     emit(Token.Type.FIELD);
-                else if (word.equals("true") || word.equals("false"))
+                } else if (word.equals("true") || word.equals("false")) {
                     emit(Token.Type.BOOL);
-                else
+                } else {
                     emit(Token.Type.IDENTIFIER);
+                }
                 break;
             }
         }
@@ -569,7 +580,7 @@ class Lexer implements Runnable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         for (Token t : tokens)
             sb.append(t).append('\n');
 

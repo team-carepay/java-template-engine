@@ -38,14 +38,14 @@ import ru.proninyaroslav.template.exceptions.ParseException;
 
 public class Template {
     final String name;
-    Tree tree;
     final Common common;
+    Tree tree;
     private String leftDelim;
     private String rightDelim;
 
-    public Template(String name) {
+    public Template(final String name) {
         this.name = name;
-        common = new Common();
+        this.common = new Common();
     }
 
     /**
@@ -56,11 +56,11 @@ public class Template {
      * @param name   template name
      * @param parent parent
      */
-    public Template(String name, Template parent) {
+    public Template(final String name, final Template parent) {
         this.name = name;
-        common = parent.common;
-        leftDelim = parent.leftDelim;
-        rightDelim = parent.rightDelim;
+        this.common = parent.common;
+        this.leftDelim = parent.leftDelim;
+        this.rightDelim = parent.rightDelim;
     }
 
     /**
@@ -72,10 +72,10 @@ public class Template {
      * @throws ParseException in case of a parse error
      * @throws IOException    in case of an I/O error
      */
-    public static Template parse(FuncMap funcs, File... files) throws ParseException, IOException {
-        if (files.length == 0)
+    public static Template parse(final FuncMap funcs, final File... files) throws ParseException, IOException {
+        if (files.length == 0) {
             throw new ParseException("no files");
-
+        }
         return parse(null, funcs, Utils.filesToString(files));
     }
 
@@ -87,31 +87,33 @@ public class Template {
      * @return template
      * @throws ParseException in case of a parse error
      */
-    public static Template parse(FuncMap funcs, Map<String, String> inputs) throws ParseException {
-        if (inputs.size() == 0)
+    public static Template parse(final FuncMap funcs, final Map<String, String> inputs) throws ParseException {
+        if (inputs.size() == 0) {
             throw new ParseException("no inputs");
-
+        }
         return parse(null, funcs, inputs);
     }
 
-    private static Template parse(Template t, FuncMap funcs,
-                                  Map<String, String> inputs) throws ParseException {
-        if (inputs.size() == 0)
+    private static Template parse(Template t, final FuncMap funcs,
+                                  final Map<String, String> inputs) throws ParseException {
+        if (inputs.size() == 0) {
             throw new ParseException("no text data");
-
+        }
         for (Map.Entry<String, String> text : inputs.entrySet()) {
             try {
-                String name = text.getKey();
+                final String name = text.getKey();
                 Template tmpl;
                 if (t == null) {
                     t = new Template(name);
-                    if (funcs != null)
+                    if (funcs != null) {
                         t.addFuncs(funcs);
+                    }
                 }
-                if (name.equals(t.name))
+                if (name.equals(t.name)) {
                     tmpl = t;
-                else
+                } else {
                     tmpl = new Template(name, t);
+                }
                 tmpl.parse(text.getValue());
             } catch (Exception e) {
                 throw new ParseException(e);
@@ -134,7 +136,7 @@ public class Template {
      * @throws InternalException in case of an internal error
      * @throws ParseException    in case of a parse error
      */
-    public void parse(String text) throws InternalException, ParseException {
+    public void parse(final String text) throws InternalException, ParseException {
         Map<String, Tree> trees;
         common.funcsLock.lock();
         try {
@@ -144,11 +146,12 @@ public class Template {
             common.funcsLock.unlock();
         }
 
-        for (String name : trees.keySet())
+        for (final String name : trees.keySet()) {
             addParseTree(name, trees.get(name));
+        }
     }
 
-    public void parse(InputStream input) throws InternalException, ParseException, IOException {
+    public void parse(final InputStream input) throws InternalException, ParseException, IOException {
         parse(new String(FileUtils.toByteArray(input)));
     }
 
@@ -161,10 +164,10 @@ public class Template {
      * @throws ParseException in case of a parse error
      * @throws IOException    in case of an I/O error
      */
-    public Template parseTo(FuncMap funcs, File... files) throws ParseException, IOException {
-        if (files.length == 0)
+    public Template parseTo(final FuncMap funcs, final File... files) throws ParseException, IOException {
+        if (files.length == 0) {
             throw new ParseException("no files");
-
+        }
         return parse(this, funcs, Utils.filesToString(files));
     }
 
@@ -177,10 +180,10 @@ public class Template {
      * @return template
      * @throws ParseException in case of a parse error
      */
-    public Template parseTo(FuncMap funcs, Map<String, String> text) throws ParseException {
-        if (text.size() == 0)
+    public Template parseTo(final FuncMap funcs, final Map<String, String> text) throws ParseException {
+        if (text.size() == 0) {
             throw new ParseException("no inputs");
-
+        }
         return parse(this, funcs, text);
     }
 
@@ -195,13 +198,14 @@ public class Template {
      * @param data data
      * @throws ExecException in case of an execute error
      */
-    public void execute(OutputStream os, Object data) throws ExecException {
-        List<Variable> vars = new ArrayList<>();
+    public void execute(final OutputStream os, final Object data) throws ExecException {
+        final List<Variable> vars = new ArrayList<>();
         vars.add(new Variable("$", data));
-        Exec state = new Exec(this, new PrintWriter(os), vars);
+        final Exec state = new Exec(this, new PrintWriter(os), vars);
         try {
-            if (tree == null || tree.root == null)
+            if (tree == null || tree.root == null) {
                 state.errorf("%s is an incomplete or empty template", name);
+            }
             state.walk(data, tree.root);
         } finally {
             state.pw.close();
@@ -217,19 +221,21 @@ public class Template {
      * @param data data
      * @throws ExecException in case of an execute error
      */
-    public void executeTemplate(OutputStream os, String name, Object data) throws ExecException {
+    public void executeTemplate(final OutputStream os, final String name, final Object data) throws ExecException {
         Template tmpl = null;
-        if (common != null)
+        if (common != null) {
             tmpl = common.tmpl.get(name);
-        if (tmpl == null)
+        }
+        if (tmpl == null) {
             throw new ExecException(String.format("no template %s associated with template %s", name, this.name));
+        }
         tmpl.execute(os, data);
     }
 
-    public void addFuncs(FuncMap funcs) {
-        if (funcs == null)
+    public void addFuncs(final FuncMap funcs) {
+        if (funcs == null) {
             throw new NullPointerException();
-
+        }
         common.funcsLock.lock();
         try {
             common.funcs.put(funcs);
@@ -238,21 +244,23 @@ public class Template {
         }
     }
 
-    public void setDelims(String left, String right) {
+    public void setDelims(final String left, final String right) {
         leftDelim = left;
         rightDelim = right;
     }
 
     public Template[] getTemplates() {
-        if (common == null)
+        if (common == null) {
             return null;
+        }
 
         return common.tmpl.values().toArray(new Template[common.tmpl.size()]);
     }
 
-    public Template getTemplate(String name) {
-        if (common == null)
+    public Template getTemplate(final String name) {
+        if (common == null) {
             return null;
+        }
 
         return common.tmpl.get(name);
     }
@@ -267,14 +275,16 @@ public class Template {
      * @throws InternalException in case of an internal error
      * @throws ParseException    in case of an execute error
      */
-    public void addParseTree(String name, Tree tree) throws InternalException, ParseException {
+    public void addParseTree(final String name, final Tree tree) throws InternalException, ParseException {
         /* If the name is the name of this template, overwrite this template */
         Template newTemplate = this;
-        if (!name.equals(this.name))
+        if (!name.equals(this.name)) {
             newTemplate = new Template(name, this);
+        }
 
-        if (associate(newTemplate, tree) || newTemplate.tree == null)
+        if (associate(newTemplate, tree) || newTemplate.tree == null) {
             newTemplate.tree = tree;
+        }
     }
 
     /**
@@ -282,25 +292,28 @@ public class Template {
      * templates associated with template.
      * The two are already known to share the TemplateCommon class
      */
-    private boolean associate(Template newTemplate, Tree tree) throws InternalException, ParseException {
-        if (newTemplate.common != common)
+    private boolean associate(final Template newTemplate, final Tree tree) throws InternalException, ParseException {
+        if (newTemplate.common != common) {
             throw new InternalException("associate not common");
+        }
 
-        Template old = common.tmpl.get(newTemplate.name);
+        final Template old = common.tmpl.get(newTemplate.name);
         /* If a template by that name exists, don't replace it with an empty template */
-        if (old != null && Tree.isEmptyTree(tree.root) && old.tree != null)
+        if (old != null && Tree.isEmptyTree(tree.root) && old.tree != null) {
             return false;
+        }
         common.tmpl.put(newTemplate.name, newTemplate);
 
         return true;
     }
 
-    List<Method> findFunc(String name) {
+    List<Method> findFunc(final String name) {
         common.funcsLock.lock();
         try {
-            List<Method> func = common.funcs.get(name);
-            if (func != null)
+            final List<Method> func = common.funcs.get(name);
+            if (func != null) {
                 return func;
+            }
         } finally {
             common.funcsLock.unlock();
         }
@@ -315,7 +328,7 @@ public class Template {
         final String name;
         Object value;
 
-        Variable(String name, Object value) {
+        Variable(final String name, final Object value) {
             this.name = name;
             this.value = value;
         }

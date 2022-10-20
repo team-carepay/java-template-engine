@@ -42,13 +42,13 @@ class Exec {
     private int depth;                           /* the height of the stack of executing templates */
     private int forDepth;                 /* nesting level of for loops */
 
-    Exec(Template tmpl, PrintWriter pw, List<Template.Variable> vars) {
+    Exec(final Template tmpl, final PrintWriter pw, final List<Template.Variable> vars) {
         this.tmpl = tmpl;
         this.pw = pw;
         this.vars = vars;
     }
 
-    private Exec(Exec s) {
+    private Exec(final Exec s) {
         this.tmpl = s.tmpl;
         this.pw = s.pw;
         this.node = s.node;
@@ -56,8 +56,8 @@ class Exec {
         this.depth = s.depth;
     }
 
-    void errorf(String format, Object... args) throws ExecException {
-        String name = Utils.doublePercent(tmpl.name);
+    void errorf(String format, final Object... args) throws ExecException {
+        final String name = Utils.doublePercent(tmpl.name);
         if (node == null) {
             format = String.format("template: %s: %s", name,
                     String.format(format, args));
@@ -72,14 +72,14 @@ class Exec {
         throw new ExecException(format);
     }
 
-    private void push(String name, Object value) {
+    private void push(final String name, final Object value) {
         vars.add(new Template.Variable(name, value));
     }
 
     /**
      * Pops the variable stack up to the mark
      */
-    private void pop(int mark) {
+    private void pop(final int mark) {
         vars = new ArrayList<>(vars.subList(0, mark));
     }
 
@@ -91,7 +91,7 @@ class Exec {
      * Overwrites the top-nth variable on the stack.
      * Used by range iterations
      */
-    private void setTopVar(int n, Object value) {
+    private void setTopVar(final int n, final Object value) {
         vars.get(vars.size() - n).value = value;
     }
 
@@ -99,7 +99,7 @@ class Exec {
      * Overwrites the last declared variable with the given name.
      * Used by variable assignments
      */
-    private void setVar(String name, Object value) throws ExecException {
+    private void setVar(final String name, final Object value) throws ExecException {
         for (int i = stackSize() - 1; i >= 0; i--) {
             if (vars.get(i).name.equals(name)) {
                 vars.get(i).value = value;
@@ -110,10 +110,11 @@ class Exec {
         errorf("undefined variable: %s", name);
     }
 
-    private Object varValue(String name) throws ExecException {
+    private Object varValue(final String name) throws ExecException {
         for (int i = vars.size() - 1; i >= 0; i--) {
-            if (vars.get(i).name.equals(name))
+            if (vars.get(i).name.equals(name)) {
                 return vars.get(i).value;
+            }
         }
         errorf("undefined variable: %s", name);
 
@@ -123,25 +124,27 @@ class Exec {
     /**
      * Marks the state to be on node, for error reporting
      */
-    private void at(Node node) {
+    private void at(final Node node) {
         this.node = node;
     }
 
-    private void printValue(Object value) {
+    private void printValue(final Object value) {
         if (value != null && value.getClass().isArray()) {
             int length = Array.getLength(value);
-            Object[] arr = new Object[length];
-            for (int i = 0; i < length; i++)
+            final Object[] arr = new Object[length];
+            for (int i = 0; i < length; i++) {
                 arr[i] = Array.get(value, i);
+            }
             pw.print(Arrays.deepToString(arr));
         } else {
             pw.print(value);
         }
     }
 
-    private void notAFunction(List<Node> args, Object finalVal) throws ExecException {
-        if (args != null && (args.size() > 1 || finalVal != null))
+    private void notAFunction(final List<Node> args, final Object finalVal) throws ExecException {
+        if (args != null && (args.size() > 1 || finalVal != null)) {
             errorf("can't give argument to non-function %s", args.get(0));
+        }
     }
 
     /**
@@ -149,34 +152,37 @@ class Exec {
      * (If it was a method argument, we'd know what we need.)
      * The syntax guides us to some extent.
      */
-    private Object constant(Node.Number num) {
+    private Object constant(final Node.Number num) {
         at(num);
         if (num.isFloat && !Utils.isHexConstant(num.text) &&
-                Utils.containsAny(num.text, ".eE"))
+                Utils.containsAny(num.text, ".eE")) {
             return num.floatVal;
-        else if (num.isInt)
+        } else if (num.isInt) {
             return num.intVal;
+        }
 
         return null;
     }
 
-    ForControl walk(Object dot, Node node) throws ExecException {
+    ForControl walk(final Object dot, final Node node) throws ExecException {
         at(node);
         if (node instanceof Node.Action) {
             /* If the action declares variables, don't print the result */
-            Node.Action nodeAction = (Node.Action) node;
-            Object val = evalPipeline(dot, nodeAction.pipe);
-            if (nodeAction.pipe.vars.size() == 0)
+            final Node.Action nodeAction = (Node.Action) node;
+            final Object val = evalPipeline(dot, nodeAction.pipe);
+            if (nodeAction.pipe.vars.size() == 0) {
                 printValue(val);
+            }
         } else if (node instanceof Node.If) {
-            Node.If nodeIf = (Node.If) node;
+            final Node.If nodeIf = (Node.If) node;
             return walkIfOrWith(Node.Type.IF, dot, nodeIf.pipe,
                     nodeIf.sequence, nodeIf.elseSequence);
         } else if (node instanceof Node.Sequence) {
-            for (Node n : ((Node.Sequence) node).nodes) {
-                ForControl c = walk(dot, n);
-                if (c != ForControl.NONE)
+            for (final Node n : ((Node.Sequence) node).nodes) {
+                final ForControl c = walk(dot, n);
+                if (c != ForControl.NONE) {
                     return c;
+                }
             }
         } else if (node instanceof Node.For) {
             return walkFor(dot, (Node.For) node);
@@ -185,16 +191,18 @@ class Exec {
         } else if (node instanceof Node.Text) {
             pw.write(((Node.Text) node).text);
         } else if (node instanceof Node.With) {
-            Node.With nodeWith = (Node.With) node;
+            final Node.With nodeWith = (Node.With) node;
             return walkIfOrWith(Node.Type.WITH, dot, nodeWith.pipe,
                     nodeWith.sequence, nodeWith.elseSequence);
         } else if (node instanceof Node.Break) {
-            if (forDepth == 0)
+            if (forDepth == 0) {
                 errorf("invalid break outside of for");
+            }
             return ForControl.BREAK;
         } else if (node instanceof Node.Continue) {
-            if (forDepth == 0)
+            if (forDepth == 0) {
                 errorf("invalid continue outside of for");
+            }
             return ForControl.CONTINUE;
         } else {
             errorf("unknown node: %s", node);
@@ -207,12 +215,12 @@ class Exec {
      * Walks an 'if' or 'with' node.
      * They are identical in behavior except that 'with' sets dot
      */
-    private ForControl walkIfOrWith(Node.Type type, Object dot,
-                                    Node.Pipe pipe, Node.Sequence sequence,
-                                    Node.Sequence elseSequence) throws ExecException {
+    private ForControl walkIfOrWith(final Node.Type type, final Object dot,
+                                    final Node.Pipe pipe, final Node.Sequence sequence,
+                                    final Node.Sequence elseSequence) throws ExecException {
         int stackSize = stackSize();
         try {
-            Object val = evalPipeline(dot, pipe);
+            final Object val = evalPipeline(dot, pipe);
             boolean truth = false;
             try {
                 truth = Utils.isTrue(val);
@@ -220,10 +228,11 @@ class Exec {
                 errorf("if/with can't use %s", val);
             }
             if (truth) {
-                if (type == Node.Type.WITH)
+                if (type == Node.Type.WITH) {
                     return walk(val, sequence);
-                else
+                } else {
                     return walk(dot, sequence);
+                }
             } else if (elseSequence != null) {
                 return walk(dot, elseSequence);
             }
@@ -234,31 +243,35 @@ class Exec {
         return ForControl.NONE;
     }
 
-    private ForControl walkFor(Object dot, Node.For f) throws ExecException {
+    private ForControl walkFor(final Object dot, final Node.For f) throws ExecException {
         at(f);
-        int stackSize = stackSize();
+        final int stackSize = stackSize();
         try {
             Object val = evalPipeline(dot, f.pipe);
             int startStackSize = stackSize();
             ++forDepth;
             if (val != null) {
                 if (val instanceof Iterable) {
-                    Iterator i = ((Iterable) val).iterator();
+                    final Iterator i = ((Iterable) val).iterator();
                     if (i.hasNext()) {
-                        while (i.hasNext())
+                        while (i.hasNext()) {
                             if (forIteration(f, i.next(),
-                                    startStackSize) == ForControl.BREAK)
+                                    startStackSize) == ForControl.BREAK) {
                                 break;
+                            }
+                        }
                         --forDepth;
                         return ForControl.NONE;
                     }
                 } else if (val.getClass().isArray()) {
-                    int length = Array.getLength(val);
+                    final int length = Array.getLength(val);
                     if (length > 0) {
-                        for (int i = 0; i < length; i++)
+                        for (int i = 0; i < length; i++) {
                             if (forIteration(f, Array.get(val, i),
-                                    startStackSize) == ForControl.BREAK)
+                                    startStackSize) == ForControl.BREAK) {
                                 break;
+                            }
+                        }
                         --forDepth;
                         return ForControl.NONE;
                     }
@@ -267,8 +280,9 @@ class Exec {
                 }
             }
             --forDepth;
-            if (f.elseSequence != null)
+            if (f.elseSequence != null) {
                 return walk(dot, f.elseSequence);
+            }
         } finally {
             pop(stackSize);
         }
@@ -276,28 +290,30 @@ class Exec {
         return ForControl.NONE;
     }
 
-    private ForControl forIteration(Node.For f, Object elem, int startStackSize) throws ExecException {
-        if (f.pipe.vars.size() == 1)
+    private ForControl forIteration(final Node.For f, final Object elem, final int startStackSize) throws ExecException {
+        if (f.pipe.vars.size() == 1) {
             setTopVar(1, elem);
-        ForControl c = walk(elem, f.sequence);
+        }
+        final ForControl c = walk(elem, f.sequence);
         pop(startStackSize);
 
         return c;
     }
 
-    private void walkTemplate(Object dot, Node.Template template) throws ExecException {
+    private void walkTemplate(Object dot, final Node.Template template) throws ExecException {
         at(template);
-        Template tmpl = this.tmpl.common.tmpl.get(template.name);
+        final Template tmpl = this.tmpl.common.tmpl.get(template.name);
         if (tmpl == null) {
             errorf("template %s not defined", template.name);
             return;
         }
-        if (depth == maxExecDepth)
+        if (depth == maxExecDepth) {
             errorf("exceeded maximum template depth (%d)", maxExecDepth);
+        }
 
         /* Variables declared by the pipeline persist */
         dot = evalPipeline(dot, template.pipe);
-        Exec newState = new Exec(this);
+        final Exec newState = new Exec(this);
         newState.depth++;
         newState.tmpl = tmpl;
         /* Template invocations inherit no variables */
@@ -306,71 +322,76 @@ class Exec {
         newState.walk(dot, tmpl.tree.root);
     }
 
-    private Object evalPipeline(Object dot, Node.Pipe pipe) throws ExecException {
-        if (pipe == null)
+    private Object evalPipeline(final Object dot, final Node.Pipe pipe) throws ExecException {
+        if (pipe == null) {
             return null;
+        }
 
         at(pipe);
         Object val = null;
-        for (Node.Command cmd : pipe.cmds)
+        for (Node.Command cmd : pipe.cmds) {
             val = evalCommand(dot, cmd, val);
+        }
         for (Node.Assign var : pipe.vars) {
-            if (pipe.decl)
+            if (pipe.decl) {
                 push(var.ident.get(0), val);
-            else
+            } else {
                 setVar(var.ident.get(0), val);
+            }
         }
 
         return val;
     }
 
-    private Object evalCommand(Object dot, Node.Command cmd, Object finalVal) throws ExecException {
-        Node firstWord = cmd.args.get(0);
-        if (firstWord instanceof Node.Field)
+    private Object evalCommand(final Object dot, final Node.Command cmd, final Object finalVal) throws ExecException {
+        final Node firstWord = cmd.args.get(0);
+        if (firstWord instanceof Node.Field) {
             return evalFieldNode(dot, (Node.Field) firstWord,
                     cmd.args, finalVal);
-        else if (firstWord instanceof Node.Chain)
+        } else if (firstWord instanceof Node.Chain) {
             return evalChainNode(dot, (Node.Chain) firstWord,
                     cmd.args, finalVal);
-        else if (firstWord instanceof Node.Identifier)
+        } else if (firstWord instanceof Node.Identifier) {
             return evalFunction(dot, (Node.Identifier) firstWord,
                     cmd, cmd.args, finalVal);
-        else if (firstWord instanceof Node.Pipe)
+        } else if (firstWord instanceof Node.Pipe) {
             /*
              * Parenthesized pipeline. The arguments are all
              * inside the pipeline; finalValue is ignored
              */
             return evalPipeline(dot, (Node.Pipe) firstWord);
-        else if (firstWord instanceof Node.Assign)
+        } else if (firstWord instanceof Node.Assign) {
             return evalVariableNode(dot, (Node.Assign) firstWord,
                     cmd.args, finalVal);
+        }
 
         at(firstWord);
         notAFunction(cmd.args, finalVal);
-        if (firstWord instanceof Node.Bool)
+        if (firstWord instanceof Node.Bool) {
             return ((Node.Bool) firstWord).boolVal;
-        else if (firstWord instanceof Node.Dot)
+        } else if (firstWord instanceof Node.Dot) {
             return dot;
-        else if (firstWord instanceof Node.Null)
+        } else if (firstWord instanceof Node.Null) {
             errorf("null is not a command");
-        else if (firstWord instanceof Node.Number)
+        } else if (firstWord instanceof Node.Number) {
             return constant((Node.Number) firstWord);
-        else if (firstWord instanceof Node.StringConst)
+        } else if (firstWord instanceof Node.StringConst) {
             return ((Node.StringConst) firstWord).text;
+        }
 
         errorf("can't evaluate command %s", firstWord);
 
         return null;
     }
 
-    private Object evalFieldNode(Object dot, Node.Field field,
-                                 List<Node> args, Object finalVal) throws ExecException {
+    private Object evalFieldNode(final Object dot, final Node.Field field,
+                                 final List<Node> args, final Object finalVal) throws ExecException {
         at(field);
         return evalFieldChain(dot, dot, field, field.ident, args, finalVal);
     }
 
-    private Object evalChainNode(Object dot, Node.Chain chain,
-                                 List<Node> args, Object finalVal) throws ExecException {
+    private Object evalChainNode(final Object dot, final Node.Chain chain,
+                                 final List<Node> args, final Object finalVal) throws ExecException {
         at(chain);
         if (chain == null) {
             errorf("indirection through explicit null in %s");
@@ -381,12 +402,12 @@ class Exec {
             return null;
         }
         /* In case (pipe).field1.field2 eval the pipeline, then the fields */
-        Object pipe = evalArg(dot, chain.node);
+        final Object pipe = evalArg(dot, chain.node);
 
         return evalFieldChain(dot, pipe, chain, chain.field, args, finalVal);
     }
 
-    private Object evalArg(Object dot, Node node) throws ExecException {
+    private Object evalArg(final Object dot, final Node node) throws ExecException {
         /* Type checking occurs during the method/function call */
         at(node);
         if (node instanceof Node.Dot) {
@@ -394,7 +415,7 @@ class Exec {
         } else if (node instanceof Node.Null) {
             return null;
         } else if (node instanceof Node.Field) {
-            List<Node> args = new ArrayList<>();
+            final List<Node> args = new ArrayList<>();
             args.add(node);
             return evalFieldNode(dot, (Node.Field) node, args, null);
         } else if (node instanceof Node.Assign) {
@@ -422,13 +443,14 @@ class Exec {
      * dot is the environment in which to evaluate arguments,
      * while receiver is the value being walked along the chain
      */
-    private Object evalFieldChain(Object dot, Object receiver, Node node,
-                                  List<String> ident, List<Node> args,
-                                  Object finalVal) throws ExecException {
-        int n = ident.size();
-        for (int i = 0; i < n - 1; i++)
+    private Object evalFieldChain(final Object dot, Object receiver, final Node node,
+                                  final List<String> ident, final List<Node> args,
+                                  final Object finalVal) throws ExecException {
+        final int n = ident.size();
+        for (int i = 0; i < n - 1; i++) {
             receiver = evalField(dot, ident.get(i), node,
                     null, null, receiver);
+        }
         /* If it's a method, it gets the arguments */
         return evalField(dot, ident.get(n - 1), node,
                 args, finalVal, receiver);
@@ -440,34 +462,38 @@ class Exec {
      * preceding value of the pipeline.
      * Field and method with one name are not allowed
      */
-    private Object evalField(Object dot, String fieldName, Node node,
-                             List<Node> args, Object finalVal, Object receiver) throws ExecException {
+    private Object evalField(final Object dot, final String fieldName, final Node node,
+                             final List<Node> args, final Object finalVal, final Object receiver) throws ExecException {
         if (receiver == null) {
             errorf("null pointer evaluating null.%s", fieldName);
             return null;
         }
 
         /* Special case of calling an array length field */
-        if (receiver.getClass().isArray() && fieldName.equals("length"))
+        if (receiver.getClass().isArray() && fieldName.equals("length")) {
             return Array.getLength(receiver);
+        }
 
-        Method[] methods = receiver.getClass().getDeclaredMethods();
+        final Method[] methods = receiver.getClass().getDeclaredMethods();
         Field field = null;
         boolean hasArgs = args != null && (args.size() > 1 || finalVal != null);
 
         /* Find methods */
-        List<Method> foundMethods = new ArrayList<>();
-        for (Method method : methods)
-            if (method.getName().equals(fieldName))
+        final List<Method> foundMethods = new ArrayList<>();
+        for (final Method method : methods) {
+            if (method.getName().equals(fieldName)) {
                 foundMethods.add(method);
+            }
+        }
 
         /* Find field */
         try {
             field = receiver.getClass().getDeclaredField(fieldName);
         } catch (NoSuchFieldException | SecurityException e) {
-            if (foundMethods.isEmpty())
+            if (foundMethods.isEmpty()) {
                 errorf("can't evaluate field %s in class %s",
                         fieldName, receiver.getClass().getName());
+            }
         }
 
         if (field != null && !foundMethods.isEmpty()) {
@@ -500,10 +526,10 @@ class Exec {
         return null;
     }
 
-    private Object evalFunction(Object dot, Node.Identifier node,
-                                Node cmd, List<Node> args, Object finalVal) throws ExecException {
-        String name = node.ident;
-        List<Method> func = tmpl.findFunc(name);
+    private Object evalFunction(final Object dot, final Node.Identifier node,
+                                final Node cmd, final List<Node> args, final Object finalVal) throws ExecException {
+        final String name = node.ident;
+        final List<Method> func = tmpl.findFunc(name);
         if (func == null) {
             errorf("%s is not a defined function", name);
             return null;
@@ -516,27 +542,31 @@ class Exec {
      * Executes method or function call.
      * It takes as an argument an array of functions, since they can be overridden
      */
-    private Object evalCall(Object dot, List<Method> func, Node node,
-                            String name, List<Node> args, Object finalVal,
-                            Object receiver) throws ExecException {
+    private Object evalCall(final Object dot, final List<Method> func, final Node node,
+                            final String name, List<Node> args, final Object finalVal,
+                            final Object receiver) throws ExecException {
         /* Zeroth arg is function name/node; not passed to function*/
-        if (args != null)
+        if (args != null) {
             args = new ArrayList<>(args.subList(1, args.size()));
+        }
 
-        int numArgs = (args != null ? args.size() : 0);
-        List<Object> argv = new ArrayList<>();
+        final int numArgs = (args != null ? args.size() : 0);
+        final List<Object> argv = new ArrayList<>();
         /* Add object that calling method (or not if method is static)*/
-        if (receiver != null)
+        if (receiver != null) {
             argv.add(receiver);
-        for (int i = 0; i < numArgs; i++)
+        }
+        for (int i = 0; i < numArgs; i++) {
             argv.add(evalArg(dot, args.get(i)));
+        }
         /* Add final value if necessary */
-        if (finalVal != null)
+        if (finalVal != null) {
             argv.add(finalVal);
+        }
 
         Object result = null;
-        List<String> err = new ArrayList<>();
-        String errFmt = "\n(%s): %s";
+        final List<String> err = new ArrayList<>();
+        final String errFmt = "\n(%s): %s";
         /* Try to call method */
         for (Method m : func) {
             if (m.getReturnType() == void.class) {
@@ -558,23 +588,24 @@ class Exec {
         if (result == null && !err.isEmpty()) {
             at(node);
             StringBuilder sb = new StringBuilder("error calling " + name + ":");
-            for (String e : err)
+            for (String e : err) {
                 sb.append(e);
+            }
             errorf(sb.toString());
         }
 
         return result;
     }
 
-    private Object evalVariableNode(Object dot, Node.Assign var,
-                                    List<Node> args, Object finalVal) throws ExecException {
+    private Object evalVariableNode(final Object dot, final Node.Assign var,
+                                    final List<Node> args, final Object finalVal) throws ExecException {
         /*
          * $x.field has $x as the first ident, field as the second.
          * Eval the var, then the fields
          */
         at(var);
-        Object val = varValue(var.ident.get(0));
-        int size = var.ident.size();
+        final Object val = varValue(var.ident.get(0));
+        final int size = var.ident.size();
         if (size == 1) {
             notAFunction(args, finalVal);
             return val;

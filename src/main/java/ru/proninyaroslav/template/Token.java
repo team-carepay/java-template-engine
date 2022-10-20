@@ -22,14 +22,14 @@ class Token {
     public final String val;    /* the value of this token */
     public final int line;    /* the line number at the start of this token */
 
-    public Token(Type type, int pos, String val, int line) {
+    public Token(final Type type, final int pos, final String val, final int line) {
         this.type = type;
         this.pos = pos;
         this.val = val;
         this.line = line;
     }
 
-    public Token(Type type, String val) {
+    public Token(final Type type, final String val) {
         this.type = type;
         this.pos = 0;
         this.val = val;
@@ -38,16 +38,16 @@ class Token {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (type == Type.EOF)
+        final StringBuilder sb = new StringBuilder();
+        if (type == Type.EOF) {
             sb.append("EOF");
-        else if (type.ordinal() > Type.KEYWORD.ordinal())
+        } else if (type.ordinal() > Type.KEYWORD.ordinal()) {
             sb.append(String.format("<%s>", val));
-        else if (val.length() > 50)
+        } else if (val.length() > 50) {
             sb.append(String.format("'%.50s...'", val));
-        else
+        } else {
             sb.append(String.format("'%s'", val));
-
+        }
         return sb.toString();
     }
 

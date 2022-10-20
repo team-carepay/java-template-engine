@@ -28,20 +28,20 @@ import java.util.Map;
 import java.util.Objects;
 
 class Utils {
-    static boolean isSpace(char c) {
+    static boolean isSpace(final char c) {
         return c == ' ' || c == '\t';
     }
 
-    static boolean isEndOfLine(char c) {
+    static boolean isEndOfLine(final char c) {
         return c == '\r' || c == '\n';
     }
 
-    static boolean isAlphaNumeric(char c) {
+    static boolean isAlphaNumeric(final char c) {
         return c == '_' || Character.isLetterOrDigit(c);
     }
 
-    static char unquoteChar(String s, char quote, StringBuilder tail) {
-        String err = String.format("malformed character constant: %s", s);
+    static char unquoteChar(String s, final char quote, final StringBuilder tail) {
+        final String err = String.format("malformed character constant: %s", s);
         char c = s.charAt(0);
         if (c == quote && (quote == '\'' || quote == '"')) {
             throw new IllegalArgumentException(err);
@@ -54,8 +54,9 @@ class Utils {
         }
 
         /* Escaped character */
-        if (s.length() <= 1)
+        if (s.length() <= 1) {
             throw new IllegalArgumentException(err);
+        }
         c = s.charAt(1);
         s = s.substring(2);
         if (tail != null) {
@@ -63,7 +64,7 @@ class Utils {
             tail.append(s);
         }
 
-        List<Integer> chars = new ArrayList<>();
+        final List<Integer> chars = new ArrayList<>();
         int val;
         switch (c) {
             case 'n':
@@ -80,13 +81,15 @@ class Utils {
                 return '\\';
             case '\'':
             case '"':
-                if (c != quote)
+                if (c != quote) {
                     throw new IllegalArgumentException(err);
+                }
                 return c;
             case 'u':
                 final int maxLength = 4;
-                if (s.length() < maxLength)
+                if (s.length() < maxLength) {
                     throw new IllegalArgumentException(err);
+                }
                 val = 0;
                 for (int i = 0; i < maxLength; i++) {
                     int n;
@@ -97,8 +100,9 @@ class Utils {
                     }
                     val = (val << maxLength) | n;
                 }
-                if (val > Character.MAX_VALUE)
+                if (val > Character.MAX_VALUE) {
                     throw new IllegalArgumentException(err);
+                }
                 if (tail != null) {
                     tail.setLength(0);
                     tail.append(s.substring(maxLength));
@@ -116,14 +120,17 @@ class Utils {
                 val = c - '0';
                 for (int i = 0; i < s.length(); i++) {
                     int n = s.charAt(i) - '0';
-                    if (n >= 0 && n <= 7)
+                    if (n >= 0 && n <= 7) {
                         chars.add(n);
+                    }
                 }
                 int length = chars.size();
-                for (int n : chars)
+                for (int n : chars) {
                     val = (val << length + 1) | n;
-                if (val > Character.MAX_VALUE)
+                }
+                if (val > Character.MAX_VALUE) {
                     throw new IllegalArgumentException(err);
+                }
                 if (tail != null) {
                     tail.setLength(0);
                     tail.append(s.substring(length));
@@ -135,46 +142,54 @@ class Utils {
         }
     }
 
-    private static int unhex(char c) {
-        if (c >= '0' && c <= '9')
+    private static int unhex(final char c) {
+        if (c >= '0' && c <= '9') {
             return c - '0';
-        else if (c >= 'a' && c <= 'f')
+        } else if (c >= 'a' && c <= 'f') {
             return c - 'a' + 10;
-        else if (c >= 'A' && c <= 'F')
+        } else if (c >= 'A' && c <= 'F') {
             return c - 'A' + 10;
+        }
 
         throw new IllegalArgumentException();
     }
 
     static String unquote(String s) {
-        int n = s.length();
-        String err = String.format("malformed string constant: %s", s);
-        if (n < 2)
+        final int n = s.length();
+        final String err = String.format("malformed string constant: %s", s);
+        if (n < 2) {
             throw new IllegalArgumentException(err);
+        }
 
-        char quote = s.charAt(0);
-        if (quote != s.charAt(n - 1))
+        final char quote = s.charAt(0);
+        if (quote != s.charAt(n - 1)) {
             throw new IllegalArgumentException(err);
+        }
         s = s.substring(1, n - 1);
 
         if (quote == '`') {
-            if (s.indexOf('`') >= 0)
+            if (s.indexOf('`') >= 0) {
                 throw new IllegalArgumentException(err);
+            }
             if (s.indexOf('\r') >= 0) {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < s.length(); i++)
-                    if (s.charAt(i) != '\r')
+                final StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < s.length(); i++) {
+                    if (s.charAt(i) != '\r') {
                         sb.append(s.charAt(i));
+                    }
+                }
 
                 return sb.toString();
             }
 
             return s;
         }
-        if (quote != '"' && quote != '\'')
+        if (quote != '"' && quote != '\'') {
             throw new IllegalArgumentException(err);
-        if (s.indexOf('\n') >= 0)
+        }
+        if (s.indexOf('\n') >= 0) {
             throw new IllegalArgumentException(err);
+        }
 
         if (s.indexOf('\\') < 0 && s.indexOf(quote) < 0) {
             switch (quote) {
@@ -186,14 +201,15 @@ class Utils {
             }
         }
 
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         while (s.length() > 0) {
-            StringBuilder tail = new StringBuilder();
-            char c = unquoteChar(s, quote, tail);
+            final StringBuilder tail = new StringBuilder();
+            final char c = unquoteChar(s, quote, tail);
             s = tail.toString();
             sb.append(c);
-            if (quote == '\'' && s.length() != 0)
+            if (quote == '\'' && s.length() != 0) {
                 throw new IllegalArgumentException(err);
+            }
         }
 
         return sb.toString();
@@ -204,22 +220,25 @@ class Utils {
      * so it can be used safely inside a String.format().
      */
     static String doublePercent(String s) {
-        if (s.contains("%"))
+        if (s.contains("%")) {
             s = s.replaceAll("%", "%%");
+        }
 
         return s;
     }
 
-    static int countChars(String s, char c) {
+    static int countChars(final String s, final char c) {
         int n = 0;
-        for (int i = 0; i < s.length(); i++)
-            if (s.charAt(i) == c)
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == c) {
                 ++n;
+            }
+        }
 
         return n;
     }
 
-    static boolean containsAny(String s, String chars) {
+    static boolean containsAny(final String s, final String chars) {
         boolean match = false;
         for (char c : chars.toCharArray()) {
             if (s.indexOf(c) >= 0) {
@@ -231,7 +250,7 @@ class Utils {
         return match;
     }
 
-    static boolean isHexConstant(String s) {
+    static boolean isHexConstant(final String s) {
         return s.length() > 2 && s.charAt(0) == '0' &&
                 (s.charAt(1) == 'x' || s.charAt(1) == 'X');
     }
@@ -240,71 +259,76 @@ class Utils {
      * Reports whether the value is 'true', in the sense of not
      * the zero of its type, and whether the value has a meaningful truth value.
      */
-    static boolean isTrue(Object val) throws IllegalArgumentException {
-        if (val == null)
+    static boolean isTrue(final Object val) throws IllegalArgumentException {
+        if (val == null) {
             return false;
+        }
 
         boolean truth = true;
-        if (val instanceof Boolean)
+        if (val instanceof Boolean) {
             truth = (Boolean) val;
-        else if (val instanceof String)
+        } else if (val instanceof String) {
             truth = !((String) val).isEmpty();
-        else if (val instanceof Integer)
+        } else if (val instanceof Integer) {
             truth = ((Integer) val) > 0;
-        else if (val instanceof Double)
+        } else if (val instanceof Double) {
             truth = ((Double) val) > 0;
-        else if (val instanceof Long)
+        } else if (val instanceof Long) {
             truth = ((Long) val) > 0;
-        else if (val instanceof Collection)
+        } else if (val instanceof Collection) {
             truth = !((Collection) val).isEmpty();
-        else if (val instanceof Map)
+        } else if (val instanceof Map) {
             truth = !((Map) val).isEmpty();
-        else if (val.getClass().isArray())
+        } else if (val.getClass().isArray()) {
             truth = Array.getLength(val) > 0;
-        else if (val instanceof Float)
+        } else if (val instanceof Float) {
             truth = ((Float) val) > 0;
-        else if (val instanceof Short)
+        } else if (val instanceof Short) {
             truth = ((Short) val) > 0;
-        else if (val instanceof Byte)
+        } else if (val instanceof Byte) {
             truth = ((Byte) val) > 0;
+        }
 
         return truth;
     }
 
-    static Map<String, String> filesToString(File... files) throws IOException {
-        Map<String, String> s = new HashMap<>();
-        for (File file : files)
+    static Map<String, String> filesToString(final File... files) throws IOException {
+        final Map<String, String> s = new HashMap<>();
+        for (final File file : files) {
             s.put(file.getName(), new String(FileUtils.bytes(file)));
+        }
 
         return s;
     }
 
-    public static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements) {
+    public static String join(final CharSequence delimiter, final Iterable<? extends CharSequence> elements) {
         Objects.requireNonNull(delimiter);
         Objects.requireNonNull(elements);
-        StringBuilder joiner = new StringBuilder();
-        Iterator i = elements.iterator();
+        final StringBuilder joiner = new StringBuilder();
+        final Iterator i = elements.iterator();
 
         while (i.hasNext()) {
             CharSequence cs = (CharSequence) i.next();
             joiner.append(cs);
-            if (i.hasNext())
+            if (i.hasNext()) {
                 joiner.append(delimiter);
+            }
         }
 
         return joiner.toString();
     }
 
-    public static String join(CharSequence delimiter, CharSequence... elements) {
+    public static String join(final CharSequence delimiter, final CharSequence... elements) {
         Objects.requireNonNull(delimiter);
         Objects.requireNonNull(elements);
-        StringBuilder joiner = new StringBuilder();
+        final StringBuilder joiner = new StringBuilder();
 
         for (int i = 0; i < elements.length; i++) {
-            CharSequence cs = elements[i];
+            final CharSequence cs = elements[i];
             joiner.append(cs);
-            if (i + 1 != elements.length)
+            if (i + 1 != elements.length) {
                 joiner.append(delimiter);
+            }
         }
 
         return joiner.toString();

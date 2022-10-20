@@ -41,7 +41,7 @@ final class FileUtils {
      * @throws IOException in case of an I/O error
      * @since 1.1
      */
-    static byte[] bytes(File file) throws IOException {
+    static byte[] bytes(final File file) throws IOException {
         InputStream in = null;
         try {
             in = openInputStream(file);
@@ -69,7 +69,7 @@ final class FileUtils {
      * @throws IOException                   if the file cannot be read
      * @since 1.3
      */
-    private static FileInputStream openInputStream(File file) throws IOException {
+    private static FileInputStream openInputStream(final File file) throws IOException {
         if (file.exists()) {
             if (file.isDirectory()) {
                 throw new IOException("File '" + file + "' exists but is a directory");
@@ -99,8 +99,7 @@ final class FileUtils {
      * @see #toByteArray(java.io.InputStream, int)
      * @since 2.1
      */
-    private static byte[] toByteArray(InputStream input, long size) throws IOException {
-
+    private static byte[] toByteArray(final InputStream input, final long size) throws IOException {
         if (size > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Size cannot be greater than Integer max value: " + size);
         }
@@ -120,8 +119,7 @@ final class FileUtils {
      * @throws IllegalArgumentException if size is less than zero
      * @since 2.1
      */
-    static byte[] toByteArray(InputStream input, int size) throws IOException {
-
+    static byte[] toByteArray(final InputStream input, final int size) throws IOException {
         if (size < 0) {
             throw new IllegalArgumentException("Size must be equal or greater than zero: " + size);
         }
@@ -130,7 +128,7 @@ final class FileUtils {
             return new byte[0];
         }
 
-        byte[] data = new byte[size];
+        final byte[] data = new byte[size];
         int offset = 0;
         int readed;
 
@@ -145,11 +143,11 @@ final class FileUtils {
         return data;
     }
 
-    static byte[] toByteArray(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+    static byte[] toByteArray(final InputStream input) throws IOException {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
         try {
             int n;
-            byte[] buffer = new byte[1024 * 4];
+            final byte[] buffer = new byte[1024 * 4];
             while (EOF != (n = input.read(buffer)))
                 output.write(buffer, 0, n);
 
@@ -183,7 +181,7 @@ final class FileUtils {
      *
      * @param input the InputStream to close, may be null or already closed
      */
-    static void closeQuietly(InputStream input) {
+    static void closeQuietly(final InputStream input) {
         closeQuietly((Closeable) input);
     }
 
@@ -210,7 +208,7 @@ final class FileUtils {
      * @param closeable the object to close, may be null or already closed
      * @since 2.0
      */
-    static void closeQuietly(Closeable closeable) {
+    static void closeQuietly(final Closeable closeable) {
         try {
             if (closeable != null) {
                 closeable.close();

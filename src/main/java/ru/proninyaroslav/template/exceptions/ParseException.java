@@ -17,11 +17,11 @@
 package ru.proninyaroslav.template.exceptions;
 
 public class ParseException extends Exception {
-    public ParseException(Exception e) {
+    public ParseException(final Exception e) {
         super(e);
     }
 
-    public ParseException(String msg) {
+    public ParseException(final String msg) {
         super(msg);
     }
 }

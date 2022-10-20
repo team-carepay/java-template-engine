@@ -60,7 +60,7 @@ public class BuiltinsFuncs {
      * @param stop stop value
      * @return number sequence
      */
-    public static int[] range(int stop) {
+    public static int[] range(final int stop) {
         return range(0, stop);
     }
 
@@ -71,7 +71,7 @@ public class BuiltinsFuncs {
      * @param stop  stop value
      * @return number sequence
      */
-    public static int[] range(int start, int stop) {
+    public static int[] range(final int start, final int stop) {
         return range(start, stop, start < stop ? 1 : -1);
     }
 
@@ -83,15 +83,17 @@ public class BuiltinsFuncs {
      * @param step  step value
      * @return number sequence
      */
-    public static int[] range(int start, int stop, int step) {
-        if (step == 0)
+    public static int[] range(final int start, final int stop, final int step) {
+        if (step == 0) {
             throw new IllegalArgumentException("step must not be zero");
+        }
         if (stop == start || start > stop && step > 0 ||
-                start < stop && step < 0)
+                start < stop && step < 0) {
             return null;
+        }
 
-        int length = (int) Math.ceil((double) Math.abs(stop - start) / (double) Math.abs(step));
-        int[] arr = new int[length];
+        final int length = (int) Math.ceil((double) Math.abs(stop - start) / (double) Math.abs(step));
+        final int[] arr = new int[length];
         int n = start;
         for (int i = 0; i < length; i++) {
             arr[i] = n;
@@ -110,20 +112,22 @@ public class BuiltinsFuncs {
      * @param indexes indexes
      * @return object or value
      */
-    public static Object index(Object arr, Object... indexes) {
-        if (arr == null)
+    public static Object index(final Object arr, final Object... indexes) {
+        if (arr == null) {
             throw new IllegalArgumentException("the array/list must not be null");
+        }
 
         Object a = arr;
-        for (Object i : indexes) {
-            if (a.getClass().isArray())
+        for (final Object i : indexes) {
+            if (a.getClass().isArray()) {
                 a = Array.get(a, (int) i);
-            else if (a instanceof List)
+            } else if (a instanceof List) {
                 a = ((List) a).get((int) i);
-            else if (a instanceof Map)
+            } else if (a instanceof Map) {
                 a = ((Map) a).get(i);
-            else
+            } else {
                 throw new IllegalArgumentException("can't index object with type " + a.getClass());
+            }
         }
 
         return a;
@@ -136,13 +140,14 @@ public class BuiltinsFuncs {
      * @param args arguments
      * @return formatted string
      */
-    public static String print(Object... args) {
-        StringBuilder sb = new StringBuilder();
-        int size = args.length;
+    public static String print(final Object... args) {
+        final StringBuilder sb = new StringBuilder();
+        final int size = args.length;
         for (int i = 0; i < size; i++) {
             sb.append(args[i]);
-            if (i != size - 1 && !(args[i] instanceof String))
+            if (i != size - 1 && !(args[i] instanceof String)) {
                 sb.append(" ");
+            }
         }
 
         return sb.toString();
@@ -155,10 +160,11 @@ public class BuiltinsFuncs {
      * @param args arguments
      * @return formatted string
      */
-    public static String println(Object... args) {
-        StringBuilder sb = new StringBuilder();
-        for (Object arg : args)
+    public static String println(final Object... args) {
+        final StringBuilder sb = new StringBuilder();
+        for (final Object arg : args) {
             sb.append(arg).append(" ");
+        }
         sb.append("\n");
 
         return sb.toString();
@@ -171,13 +177,16 @@ public class BuiltinsFuncs {
      * @param arg2 second value
      * @return comparison result
      */
-    public static boolean equal(Object arg1, Object... arg2) {
-        if (arg2.length == 0)
+    public static boolean equal(final Object arg1, final Object... arg2) {
+        if (arg2.length == 0) {
             throw new IllegalArgumentException("can't equal only one argument");
+        }
 
-        for (Object arg : arg2)
-            if (arg1.equals(arg))
+        for (final Object arg : arg2) {
+            if (arg1.equals(arg)) {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -189,7 +198,7 @@ public class BuiltinsFuncs {
      * @param b second value
      * @return comparison result
      */
-    public static boolean notEqual(Object a, Object b) {
+    public static boolean notEqual(final Object a, final Object b) {
         return !a.equals(b);
     }
 
@@ -200,7 +209,7 @@ public class BuiltinsFuncs {
      * @param b second value
      * @return comparison result
      */
-    public static boolean lessThan(Object a, Object b) {
+    public static boolean lessThan(final Object a, final Object b) {
         return compare(a, b, "<");
     }
 
@@ -211,7 +220,7 @@ public class BuiltinsFuncs {
      * @param b second value
      * @return comparison result
      */
-    public static boolean lessThanOrEqual(Object a, Object b) {
+    public static boolean lessThanOrEqual(final Object a, final Object b) {
         return compare(a, b, "<=");
     }
 
@@ -222,7 +231,7 @@ public class BuiltinsFuncs {
      * @param b second value
      * @return comparison result
      */
-    public static boolean greaterThan(Object a, Object b) {
+    public static boolean greaterThan(final Object a, final Object b) {
         return compare(a, b, ">");
     }
 
@@ -233,7 +242,7 @@ public class BuiltinsFuncs {
      * @param b second value
      * @return comparison result
      */
-    public static boolean greaterThanOrEqual(Object a, Object b) {
+    public static boolean greaterThanOrEqual(final Object a, final Object b) {
         return compare(a, b, ">=");
     }
 
@@ -243,7 +252,7 @@ public class BuiltinsFuncs {
      * @param a value
      * @return inversion result
      */
-    public static boolean not(Object a) {
+    public static boolean not(final Object a) {
         return !Utils.isTrue(a);
     }
 
@@ -255,13 +264,15 @@ public class BuiltinsFuncs {
      * @param args other arguments
      * @return false argument
      */
-    public static Object and(Object arg0, Object... args) {
-        if (!Utils.isTrue(arg0))
+    public static Object and(Object arg0, final Object... args) {
+        if (!Utils.isTrue(arg0)) {
             return arg0;
+        }
         for (Object arg : args) {
             arg0 = arg;
-            if (!Utils.isTrue(arg0))
+            if (!Utils.isTrue(arg0)) {
                 break;
+            }
         }
 
         return arg0;
@@ -275,13 +286,15 @@ public class BuiltinsFuncs {
      * @param args other arguments
      * @return true argument
      */
-    public static Object or(Object arg0, Object... args) {
-        if (Utils.isTrue(arg0))
+    public static Object or(Object arg0, final Object... args) {
+        if (Utils.isTrue(arg0)) {
             return arg0;
+        }
         for (Object arg : args) {
             arg0 = arg;
-            if (Utils.isTrue(arg0))
+            if (Utils.isTrue(arg0)) {
                 break;
+            }
         }
 
         return arg0;
@@ -294,7 +307,7 @@ public class BuiltinsFuncs {
      * @param b second summand
      * @return sum
      */
-    public static Object add(Object a, Object b) {
+    public static Object add(final Object a, final Object b) {
         return doArithmetic(a, b, '+');
     }
 
@@ -305,7 +318,7 @@ public class BuiltinsFuncs {
      * @param b subtrahend
      * @return difference
      */
-    public static Object sub(Object a, Object b) {
+    public static Object sub(final Object a, final Object b) {
         return doArithmetic(a, b, '-');
     }
 
@@ -316,7 +329,7 @@ public class BuiltinsFuncs {
      * @param b multiplier
      * @return product
      */
-    public static Object mul(Object a, Object b) {
+    public static Object mul(final Object a, final Object b) {
         return doArithmetic(a, b, '*');
     }
 
@@ -327,7 +340,7 @@ public class BuiltinsFuncs {
      * @param b divisor
      * @return quotient
      */
-    public static Object div(Object a, Object b) {
+    public static Object div(final Object a, final Object b) {
         return doArithmetic(a, b, '/');
     }
 
@@ -338,28 +351,30 @@ public class BuiltinsFuncs {
      * @param b divisor
      * @return modulo
      */
-    public static Object mod(Object a, Object b) {
+    public static Object mod(final Object a, final Object b) {
         return doArithmetic(a, b, '%');
     }
 
-    public static boolean compare(Object a, Object b, String op) {
-        String errFmt = String.format("can't apply %s to the values %s (%s) and %s (%s)",
+    public static boolean compare(final Object a, final Object b, final String op) {
+        final String errFmt = String.format("can't apply %s to the values %s (%s) and %s (%s)",
                 op, a, a.getClass().getName(), b, b.getClass().getName());
 
         double ad, bd;
-        if (a instanceof Number)
+        if (a instanceof Number) {
             ad = ((Number) a).doubleValue();
-        else if (a instanceof Character)
+        } else if (a instanceof Character) {
             ad = ((Character) a);
-        else
+        } else {
             throw new IllegalArgumentException(errFmt);
+        }
 
-        if (b instanceof Number)
+        if (b instanceof Number) {
             bd = ((Number) b).doubleValue();
-        else if (b instanceof Character)
+        } else if (b instanceof Character) {
             bd = ((Character) b);
-        else
+        } else {
             throw new IllegalArgumentException(errFmt);
+        }
 
         switch (op) {
             case "<":
@@ -375,8 +390,8 @@ public class BuiltinsFuncs {
         }
     }
 
-    public static Object doArithmetic(Object a, Object b, char op) {
-        String errFmt = String.format("can't apply %c to the values %s (%s) and %s (%s)",
+    public static Object doArithmetic(final Object a, final Object b, final char op) {
+        final String errFmt = String.format("can't apply %c to the values %s (%s) and %s (%s)",
                 op, a, a.getClass().getName(), b, b.getClass().getName());
 
         int ai = 0, bi = 0;
@@ -428,7 +443,7 @@ public class BuiltinsFuncs {
                 throw new IllegalArgumentException(errFmt);
             }
         } else if (a instanceof String) {
-            String as = (String) a;
+            final String as = (String) a;
             if (b instanceof String && op == '+')
                 return as + b;
             else
@@ -439,44 +454,49 @@ public class BuiltinsFuncs {
 
         switch (op) {
             case '+':
-                if (ai != 0 || bi != 0)
+                if (ai != 0 || bi != 0) {
                     return ai + bi;
-                else if (al != 0 || bl != 0)
+                } else if (al != 0 || bl != 0) {
                     return al + bl;
-                else if (ad != 0 || bd != 0)
+                } else if (ad != 0 || bd != 0) {
                     return ad + bd;
+                }
                 return 0;
             case '-':
-                if (ai != 0 || bi != 0)
+                if (ai != 0 || bi != 0) {
                     return ai - bi;
-                else if (al != 0 || bl != 0)
+                } else if (al != 0 || bl != 0) {
                     return al - bl;
-                else if (ad != 0 || bd != 0)
+                } else if (ad != 0 || bd != 0) {
                     return ad - bd;
+                }
                 return 0;
             case '*':
-                if (ai != 0 || bi != 0)
+                if (ai != 0 || bi != 0) {
                     return ai * bi;
-                else if (al != 0 || bl != 0)
+                } else if (al != 0 || bl != 0) {
                     return al * bl;
-                else if (ad != 0 || bd != 0)
+                } else if (ad != 0 || bd != 0) {
                     return ad * bd;
+                }
                 return 0;
             case '/':
-                if (bi != 0)
+                if (bi != 0) {
                     return ai / bi;
-                else if (bl != 0)
+                } else if (bl != 0) {
                     return al / bl;
-                else if (bd != 0)
+                } else if (bd != 0) {
                     return ad / bd;
+                }
                 throw new IllegalArgumentException("can't divide the value by 0");
             case '%':
-                if (bi != 0)
+                if (bi != 0) {
                     return ai % bi;
-                else if (bl != 0)
+                } else if (bl != 0) {
                     return al % bl;
-                else if (bd != 0)
+                } else if (bd != 0) {
                     return ad % bd;
+                }
                 throw new IllegalArgumentException("can't modulo the value by 0");
             default:
                 throw new IllegalArgumentException("no such an operation " + op);
