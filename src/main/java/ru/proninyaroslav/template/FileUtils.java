@@ -148,7 +148,7 @@ final class FileUtils {
     static byte[] toByteArray(InputStream input) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         try {
-            int n = 0;
+            int n;
             byte[] buffer = new byte[1024 * 4];
             while (EOF != (n = input.read(buffer)))
                 output.write(buffer, 0, n);
