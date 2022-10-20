@@ -16,8 +16,12 @@
 
 package ru.proninyaroslav.template.exceptions;
 
-public class InternalException extends Exception
-{
-	public InternalException(Exception e) { super(e); }
-	public InternalException(String msg) { super(msg); }
+public class InternalException extends Exception {
+    public InternalException(Exception e) {
+        super(e);
+    }
+
+    public InternalException(String msg) {
+        super(msg);
+    }
 }

@@ -18,7 +18,10 @@ package ru.proninyaroslav.template;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides functions, that are executed inside the template.
@@ -26,34 +29,30 @@ import java.util.*;
  * names to list of overridden methods). Methods can only be static
  */
 
-public class FuncMap
-{
-	private HashMap<String, List<Method>> funcs = new HashMap<>();
+public class FuncMap {
 	static FuncMap builtins = BuiltinsFuncs.create();
+	private final HashMap<String, List<Method>> funcs = new HashMap<>();
 
 	/**
 	 * Find static method (or methods, if it overridden) in
 	 * the specified class and put it in the map.
 	 * The alias is used to call function
 	 *
-	 * @param alias alias of method
+	 * @param alias      alias of method
 	 * @param methodName method name
-	 * @param c class type
+	 * @param c          class type
 	 */
-	public void put(String alias, String methodName, Class c)
-	{
+	public void put(String alias, String methodName, Class c) {
 		findAndPut(alias, methodName, c.getMethods());
 	}
 
-	public void put(Map<String, String> aliasToName, Class c)
-	{
+	public void put(Map<String, String> aliasToName, Class c) {
 		Method[] methods = c.getMethods();
 		for (Map.Entry<String, String> i : aliasToName.entrySet())
 			findAndPut(i.getKey(), i.getValue(), methods);
 	}
 
-	public void put(FuncMap funcMap)
-	{
+	public void put(FuncMap funcMap) {
 		funcs.putAll(funcMap.funcs);
 	}
 
@@ -64,27 +63,23 @@ public class FuncMap
 	 * @param alias alias of function
 	 * @return functions list
 	 */
-	public List<Method> get(String alias)
-	{
+	public List<Method> get(String alias) {
 		return funcs.get(alias);
 	}
 
-	public boolean contains(String alias)
-	{
+	public boolean contains(String alias) {
 		return get(alias) != null;
 	}
 
-	public Map<String, List<Method>> getAll()
-	{
+	public Map<String, List<Method>> getAll() {
 		return funcs;
 	}
 
-	private void findAndPut(String alias, String methodName, Method[] methods)
-	{
+	private void findAndPut(String alias, String methodName, Method[] methods) {
 		ArrayList<Method> found = new ArrayList<>();
 		for (Method method : methods)
 			if (method.getName().equals(methodName) &&
-			    Modifier.isStatic(method.getModifiers()))
+					Modifier.isStatic(method.getModifiers()))
 				found.add(method);
 		if (found.isEmpty())
 			throw new IllegalArgumentException(String.format("method '%s' not found, not static or non-public", methodName));

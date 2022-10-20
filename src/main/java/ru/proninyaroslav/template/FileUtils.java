@@ -17,14 +17,20 @@
 
 package ru.proninyaroslav.template;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 final class FileUtils {
 
+    private static final int EOF = -1;
+
     private FileUtils() {
     }
-
-    private static final int EOF = -1;
 
     /**
      * Reads the contents of a file into a byte array.
@@ -68,7 +74,7 @@ final class FileUtils {
             if (file.isDirectory()) {
                 throw new IOException("File '" + file + "' exists but is a directory");
             }
-            if (file.canRead() == false) {
+            if (!file.canRead()) {
                 throw new IOException("File '" + file + "' cannot be read");
             }
         } else {
@@ -139,8 +145,7 @@ final class FileUtils {
         return data;
     }
 
-    static byte[] toByteArray(InputStream input) throws IOException
-    {
+    static byte[] toByteArray(InputStream input) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         try {
             int n = 0;

@@ -16,9 +16,13 @@
 
 package ru.proninyaroslav.template.exceptions;
 
-public class ParseException extends Exception
-{
-	public ParseException(Exception e) { super(e); }
-	public ParseException(String msg) { super(msg); }
+public class ParseException extends Exception {
+    public ParseException(Exception e) {
+        super(e);
+    }
+
+    public ParseException(String msg) {
+        super(msg);
+    }
 }
 

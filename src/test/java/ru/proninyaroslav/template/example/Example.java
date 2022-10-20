@@ -19,22 +19,22 @@ package ru.proninyaroslav.template.example;
 import ru.proninyaroslav.template.FuncMap;
 import ru.proninyaroslav.template.Template;
 
-public final class Example
-{
-	public char[] chars = new char[]{'a', 'b', 'c', 'd'};
-	public String[] strings = new String[]{"str1", "str2", "str3"};
-	public String test  = null;
+public final class Example {
+    public char[] chars = new char[]{'a', 'b', 'c', 'd'};
+    public String[] strings = new String[]{"str1", "str2", "str3"};
+    public String test = null;
 
-	public static void main(String[] args) throws Exception
-	{
-		FuncMap funcs = new FuncMap();
-		funcs.put("upper", "toUpperExample", Example.class);
+    public static void main(String[] args) throws Exception {
+        FuncMap funcs = new FuncMap();
+        funcs.put("upper", "toUpperExample", Example.class);
 
-		Template template = new Template("example");
-		template.addFuncs(funcs);
-		template.parse(Example.class.getClassLoader().getResourceAsStream("example.txt"));
-		template.execute(System.out, new Example());
-	}
+        Template template = new Template("example");
+        template.addFuncs(funcs);
+        template.parse(Example.class.getClassLoader().getResourceAsStream("example.txt"));
+        template.execute(System.out, new Example());
+    }
 
-	public static String toUpperExample(String s) { return s.toUpperCase(); }
+    public static String toUpperExample(String s) {
+        return s.toUpperCase();
+    }
 }

@@ -16,8 +16,12 @@
 
 package ru.proninyaroslav.template.exceptions;
 
-public class ExecException extends Exception
-{
-	public ExecException(Exception e) { super(e); }
-	public ExecException(String msg) { super(msg); }
+public class ExecException extends Exception {
+    public ExecException(Exception e) {
+        super(e);
+    }
+
+    public ExecException(String msg) {
+        super(msg);
+    }
 }
