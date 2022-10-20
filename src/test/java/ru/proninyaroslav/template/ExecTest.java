@@ -30,7 +30,7 @@ import static org.junit.Assert.fail;
 public class ExecTest {
     @Test
     public void testExec() {
-        ArrayList<TestExec> tests = new ArrayList<>();
+        List<TestExec> tests = new ArrayList<>();
         T t = new T();
         tests.add(new TestExec("empty", "", "", null, false));
         tests.add(new TestExec("text", "hello world", "hello world",

@@ -76,7 +76,7 @@ public class FuncMap {
 	}
 
 	private void findAndPut(String alias, String methodName, Method[] methods) {
-		ArrayList<Method> found = new ArrayList<>();
+		List<Method> found = new ArrayList<>();
 		for (Method method : methods)
 			if (method.getName().equals(methodName) &&
 					Modifier.isStatic(method.getModifiers()))

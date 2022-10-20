@@ -39,7 +39,8 @@ More intricate example in [Example.java](https://gitlab.com/diegourban/java-temp
 Actions
 ---
 
-There is the list of actions. "Arguments" and "pipelines" are evaluations of data, defined in detail in the corresponding sections that follow:
+There is the sequence of actions. "Arguments" and "pipelines" are evaluations of data, defined in
+detail in the corresponding sections that follow:
 
 ```
 {{/* a comment */}}

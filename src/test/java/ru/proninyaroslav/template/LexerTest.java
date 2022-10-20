@@ -18,6 +18,7 @@ package ru.proninyaroslav.template;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 import ru.proninyaroslav.template.exceptions.InternalException;
@@ -42,7 +43,7 @@ public class LexerTest {
 
     @Test
     public void testLex() {
-        ArrayList<TestLex> tests = new ArrayList<>();
+        List<TestLex> tests = new ArrayList<>();
         tests.add(new TestLex("empty", "", tEOF));
         tests.add(new TestLex("spaces", " \n\t",
                 new Token(Token.Type.TEXT, " \n\t"),
@@ -290,7 +291,7 @@ public class LexerTest {
 
     @Test
     public void testPos() {
-        ArrayList<TestLex> tests = new ArrayList<>();
+        List<TestLex> tests = new ArrayList<>();
         tests.add(new TestLex("empty", "",
                 new Token(Token.Type.EOF, 0, "", 1)));
         tests.add(new TestLex("punctuation", "{{,@%#}}",
@@ -344,7 +345,7 @@ public class LexerTest {
         final Token tLeftDelim = new Token(Token.Type.LEFT_DELIM, "$$");
         final Token tRightDelim = new Token(Token.Type.RIGHT_DELIM, "@@");
 
-        ArrayList<TestLex> tests = new ArrayList<>();
+        List<TestLex> tests = new ArrayList<>();
         tests.add(new TestLex("punctuation", "$$,@%{{}}@@",
                 tLeftDelim,
                 new Token(Token.Type.CHAR, ","),
@@ -398,7 +399,7 @@ public class LexerTest {
 
     private Token[] collect(TestLex test, String leftDelim, String rightDelim) throws InternalException {
         Lexer lex = new Lexer(test.name, test.input, leftDelim, rightDelim);
-        ArrayList<Token> tokens = new ArrayList<>();
+        List<Token> tokens = new ArrayList<>();
         for (; ; ) {
             Token token = lex.nextToken();
             tokens.add(token);

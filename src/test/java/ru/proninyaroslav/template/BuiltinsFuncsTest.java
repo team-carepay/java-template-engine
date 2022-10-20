@@ -18,6 +18,7 @@ package ru.proninyaroslav.template;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -27,7 +28,7 @@ import static org.junit.Assert.fail;
 public class BuiltinsFuncsTest {
     @Test
     public void testCompare() {
-        ArrayList<TestCompare> exprs = new ArrayList<>();
+        List<TestCompare> exprs = new ArrayList<>();
         exprs.add(new TestCompare("eq", true, true, true));
         exprs.add(new TestCompare("eq", false, true, false));
         exprs.add(new TestCompare("eq", true, 1.5, 1.5));
@@ -40,14 +41,14 @@ public class BuiltinsFuncsTest {
         exprs.add(new TestCompare("eq", false, "xy", 1));
         exprs.add(new TestCompare("eq", true, 1, 2, 3, 4, 1));
         exprs.add(new TestCompare("eq", false, 1, 2, 3, 4, 5));
-        ArrayList<String> a = new ArrayList<>();
+        List<String> a = new ArrayList<>();
         a.add("test1");
         a.add("test2");
-        ArrayList<String> b = new ArrayList<>();
+        List<String> b = new ArrayList<>();
         b.add("test1");
         b.add("test2");
         b.add("test3");
-        ArrayList<String> c = new ArrayList<>();
+        List<String> c = new ArrayList<>();
         c.add("test0");
         c.add("test1");
         exprs.add(new TestCompare("eq", true, a, a));
@@ -138,7 +139,7 @@ public class BuiltinsFuncsTest {
 
     @Test
     public void testArithmetic() {
-        ArrayList<TestArithmetic> exprs = new ArrayList<>();
+        List<TestArithmetic> exprs = new ArrayList<>();
         exprs.add(new TestArithmetic(2, 3, '+', 5));
         exprs.add(new TestArithmetic(2, 3, '-', -1));
         exprs.add(new TestArithmetic(2, 3, '*', 6));

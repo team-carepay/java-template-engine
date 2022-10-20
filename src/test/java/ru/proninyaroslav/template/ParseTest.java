@@ -19,6 +19,7 @@ package ru.proninyaroslav.template;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,7 +50,7 @@ public class ParseTest {
     }
 
     private void testParse(boolean doCopy) {
-        ArrayList<TestParse> tests = new ArrayList<>();
+        List<TestParse> tests = new ArrayList<>();
         tests.add(new TestParse("empty", "", "", false));
         tests.add(new TestParse("comment", "{{/*\n\n\n*/}}", "", false));
         tests.add(new TestParse("spaces", " \t\n", " \t\n", false));
@@ -238,7 +239,7 @@ public class ParseTest {
 
     @Test
     public void testNumberParse() {
-        ArrayList<TestNumber> tests = new ArrayList<>();
+        List<TestNumber> tests = new ArrayList<>();
         tests.add(new TestNumber("0", true, true, 0, 0));
         tests.add(new TestNumber("-0", true, true, 0, 0));
         tests.add(new TestNumber("123", true, true, 123, 123));

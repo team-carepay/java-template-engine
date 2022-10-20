@@ -17,6 +17,7 @@
 package ru.proninyaroslav.template;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ru.proninyaroslav.template.exceptions.ParseException;
 
@@ -68,10 +69,10 @@ abstract class Node {
     /**
      * Holds a sequence of nodes
      */
-    public static class List extends Node {
-        public final ArrayList<Node> nodes;
+    public static class Sequence extends Node {
+        public final List<Node> nodes;
 
-        public List(Tree tree, int pos) {
+        public Sequence(Tree tree, int pos) {
             super(tree, Type.LIST, pos);
             nodes = new ArrayList<>();
         }
@@ -80,12 +81,12 @@ abstract class Node {
             nodes.add(node);
         }
 
-        public List copyList() {
-            List list = new List(tree, pos);
+        public Sequence copyList() {
+            Sequence sequence = new Sequence(tree, pos);
             for (Node node : nodes)
-                list.append(node.copy());
+                sequence.append(node.copy());
 
-            return list;
+            return sequence;
         }
 
         @Override
@@ -130,8 +131,8 @@ abstract class Node {
      */
     public static class Pipe extends Node {
         public boolean decl;      /* the variables are being declared, not assigned */
-        ArrayList<Assign> vars;   /* variables in lexical order */
-        final ArrayList<Command> cmds;  /* the commands in lexical order */
+        final List<Command> cmds;  /* the commands in lexical order */
+        List<Assign> vars;   /* variables in lexical order */
 
         public Pipe(Tree tree, int pos, java.util.List<Assign> vars) {
             super(tree, Type.PIPE, pos);
@@ -144,7 +145,7 @@ abstract class Node {
         }
 
         public Pipe copyPipe() {
-            ArrayList<Assign> copyDecl = new ArrayList<>();
+            List<Assign> copyDecl = new ArrayList<>();
             for (Assign d : vars)
                 copyDecl.add((Assign) d.copy());
             Pipe pipe = new Pipe(tree, pos, copyDecl);
@@ -184,7 +185,7 @@ abstract class Node {
      * The dollar sign is part of the (first) name
      */
     public static class Assign extends Node {
-        public final ArrayList<String> ident; /* variable name and fields in lexical order */
+        public final List<String> ident; /* variable name and fields in lexical order */
 
         public Assign(Tree tree, int pos, java.util.List<String> ident) {
             super(tree, Type.VARIABLE, pos);
@@ -213,7 +214,7 @@ abstract class Node {
      * Holds a command (a pipeline inside an evaluating action)
      */
     public static class Command extends Node {
-        public final ArrayList<Node> args; /* arguments in lexical order: identifier, field, or constant */
+        public final List<Node> args; /* arguments in lexical order: identifier, field, or constant */
 
         public Command(Tree tree, int pos) {
             super(tree, Type.COMMAND, pos);
@@ -335,7 +336,7 @@ abstract class Node {
      * The dot is dropped from each ident
      */
     public static class Field extends Node {
-        public final ArrayList<String> ident; /* variable name and fields in lexical order */
+        public final List<String> ident; /* variable name and fields in lexical order */
 
         public Field(Tree tree, int pos, java.util.List<String> ident) {
             super(tree, Type.FIELD, pos);
@@ -363,7 +364,7 @@ abstract class Node {
      * The names may be chained ('.x.y'). The periods are dropped from each ident
      */
     public static class Chain extends Node {
-        public final ArrayList<String> field; /* the identifiers in lexical order */
+        public final List<String> field; /* the identifiers in lexical order */
         public final Node node;
 
         public Chain(Tree tree, int pos, Node node) {
@@ -536,15 +537,15 @@ abstract class Node {
      */
     public static class Branch extends Node {
         final Pipe pipe;      /* the pipeline to be evaluated */
-        final List list;      /* what to execute if the value is non-empty */
-        final List elseList;  /* what to execute if the value is empty (null if absent) */
+        final Sequence sequence;      /* what to execute if the value is non-empty */
+        final Sequence elseSequence;  /* what to execute if the value is empty (null if absent) */
 
         public Branch(Tree tree, Type type, int pos,
-                      Pipe pipe, List list, List elseList) {
+                      Pipe pipe, Sequence sequence, Sequence elseSequence) {
             super(tree, type, pos);
             this.pipe = pipe;
-            this.list = list;
-            this.elseList = elseList;
+            this.sequence = sequence;
+            this.elseSequence = elseSequence;
         }
 
         @Override
@@ -552,13 +553,13 @@ abstract class Node {
             switch (type) {
                 case IF:
                     return new If(tree, pos, pipe,
-                            list, elseList);
+                            sequence, elseSequence);
                 case FOR:
                     return new For(tree, pos, pipe,
-                            list, elseList);
+                            sequence, elseSequence);
                 case WITH:
                     return new With(tree, pos, pipe,
-                            list, elseList);
+                            sequence, elseSequence);
                 default:
                     return null;
             }
@@ -580,49 +581,49 @@ abstract class Node {
                 default:
                     return "unknown branch type";
             }
-            if (elseList != null)
-                return String.format("{{%s %s}}%s{{else}}%s{{end}}", name, pipe, list, elseList);
+            if (elseSequence != null)
+                return String.format("{{%s %s}}%s{{else}}%s{{end}}", name, pipe, sequence, elseSequence);
 
-            return String.format("{{%s %s}}%s{{end}}", name, pipe, list);
+            return String.format("{{%s %s}}%s{{end}}", name, pipe, sequence);
         }
     }
 
     public static class If extends Branch {
         public If(Tree tree, int pos, Pipe pipe,
-                  List list, List elseList) {
-            super(tree, Type.IF, pos, pipe, list, elseList);
+                  Sequence sequence, Sequence elseSequence) {
+            super(tree, Type.IF, pos, pipe, sequence, elseSequence);
         }
 
         @Override
         public Node copy() {
-            return new If(tree, pos, pipe.copyPipe(), list.copyList(),
-                    elseList != null ? elseList.copyList() : null);
+            return new If(tree, pos, pipe.copyPipe(), sequence.copyList(),
+                    elseSequence != null ? elseSequence.copyList() : null);
         }
     }
 
     public static class For extends Branch {
         public For(Tree tree, int pos, Pipe pipe,
-                   List list, List elseList) {
-            super(tree, Type.FOR, pos, pipe, list, elseList);
+                   Sequence sequence, Sequence elseSequence) {
+            super(tree, Type.FOR, pos, pipe, sequence, elseSequence);
         }
 
         @Override
         public Node copy() {
-            return new For(tree, pos, pipe.copyPipe(), list.copyList(),
-                    elseList != null ? elseList.copyList() : null);
+            return new For(tree, pos, pipe.copyPipe(), sequence.copyList(),
+                    elseSequence != null ? elseSequence.copyList() : null);
         }
     }
 
     public static class With extends Branch {
         public With(Tree tree, int pos, Pipe pipe,
-                    List list, List elseList) {
-            super(tree, Type.WITH, pos, pipe, list, elseList);
+                    Sequence sequence, Sequence elseSequence) {
+            super(tree, Type.WITH, pos, pipe, sequence, elseSequence);
         }
 
         @Override
         public Node copy() {
-            return new With(tree, pos, pipe.copyPipe(), list.copyList(),
-                    elseList != null ? elseList.copyList() : null);
+            return new With(tree, pos, pipe.copyPipe(), sequence.copyList(),
+                    elseSequence != null ? elseSequence.copyList() : null);
         }
     }
 

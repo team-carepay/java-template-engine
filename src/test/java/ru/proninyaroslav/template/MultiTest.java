@@ -17,6 +17,7 @@
 package ru.proninyaroslav.template;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -30,7 +31,7 @@ import static org.junit.Assert.fail;
 public class MultiTest {
     @Test
     public void testMultiParse() {
-        ArrayList<TestMultiParse> tests = new ArrayList<>();
+        List<TestMultiParse> tests = new ArrayList<>();
         tests.add(new TestMultiParse("empty", "", false, null, null));
         tests.add(new TestMultiParse("one", "{{define \"foo\"}} FOO {{end}}",
                 false,

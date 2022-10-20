@@ -196,7 +196,7 @@ public class Template {
      * @throws ExecException in case of an execute error
      */
     public void execute(OutputStream os, Object data) throws ExecException {
-        ArrayList<Variable> vars = new ArrayList<>();
+        List<Variable> vars = new ArrayList<>();
         vars.add(new Variable("$", data));
         Exec state = new Exec(this, new PrintWriter(os), vars);
         try {

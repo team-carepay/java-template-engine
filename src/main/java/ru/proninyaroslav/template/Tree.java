@@ -32,14 +32,14 @@ public class Tree {
     private final Token[] token = new Token[3];   /* three-token lookahead for parser */
     public String name;                     /* template name */
     public String parseName;                /* name of the top-level template during parsing, for error messages */
-    public Node.List root;                  /* top-level root of the tree */
+    public Node.Sequence root;                  /* top-level root of the tree */
     private String text;                    /* text parsed to create the template (or its parent) */
     /* Parsing only; cleared after runParser */
     private Lexer lex;
     private int peekCount;
     private int forDepth;            /* nesting level of for loops */
     private FuncMap[] funcs;
-    private ArrayList<String> vars;         /* variables defined at the moment */
+    private List<String> vars;         /* variables defined at the moment */
     private HashMap<String, Tree> treeSet;
 
     public Tree(String name, String parseName,
@@ -73,8 +73,8 @@ public class Tree {
         if (node == null)
             return true;
 
-        if (node instanceof Node.List) {
-            for (Node n : ((Node.List) node).nodes)
+        if (node instanceof Node.Sequence) {
+            for (Node n : ((Node.Sequence) node).nodes)
                 if (isEmptyTree(n))
                     return false;
             return true;
@@ -335,7 +335,7 @@ public class Tree {
         }
         expect(Token.Type.RIGHT_DELIM, context);
 
-        Node.List[] outRoot = new Node.List[1];
+        Node.Sequence[] outRoot = new Node.Sequence[1];
         Node[] outEnd = new Node[1];
         tokenList(outRoot, outEnd);
         root = outRoot[0];
@@ -350,8 +350,8 @@ public class Tree {
      * textOrAction*
      * Terminates at {end} or {else}, returned separately
      */
-    private void tokenList(Node.List[] outList, Node[] outNode) throws ParseException, InternalException {
-        outList[0] = newList(peekNonSpace().pos);
+    private void tokenList(Node.Sequence[] outSequence, Node[] outNode) throws ParseException, InternalException {
+        outSequence[0] = newList(peekNonSpace().pos);
         while (peekNonSpace().type != Token.Type.EOF) {
             outNode[0] = textOrAction();
             if (outNode[0] != null &&
@@ -359,7 +359,7 @@ public class Tree {
                             outNode[0].type == Node.Type.ELSE)) {
                 return;
             }
-            outList[0].append(outNode[0]);
+            outSequence[0].append(outNode[0]);
         }
         errorf("unexpected EOF");
     }
@@ -421,7 +421,7 @@ public class Tree {
      * declaration? command ('|' command)*
      */
     private Node.Pipe pipeline(String context) throws ParseException, InternalException {
-        ArrayList<Node.Assign> vars = new ArrayList<>();
+        List<Node.Assign> vars = new ArrayList<>();
         boolean decl = false;
         int pos = peekNonSpace().pos;
         Token v = peekNonSpace();
@@ -690,11 +690,11 @@ public class Tree {
     private Node ifControl() throws ParseException, InternalException {
         int[] outPos = new int[1];
         Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.List[] outList = new Node.List[1];
-        Node.List[] outElseList = new Node.List[1];
-        parseControl(true, "if", outPos, outPipe, outList, outElseList);
+        Node.Sequence[] outSequence = new Node.Sequence[1];
+        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        parseControl(true, "if", outPos, outPipe, outSequence, outElseSequence);
 
-        return newIf(outPos[0], outPipe[0], outList[0], outElseList[0]);
+        return newIf(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
     }
 
     /**
@@ -705,11 +705,11 @@ public class Tree {
     private Node forControl() throws ParseException, InternalException {
         int[] outPos = new int[1];
         Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.List[] outList = new Node.List[1];
-        Node.List[] outElseList = new Node.List[1];
-        parseControl(false, "for", outPos, outPipe, outList, outElseList);
+        Node.Sequence[] outSequence = new Node.Sequence[1];
+        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        parseControl(false, "for", outPos, outPipe, outSequence, outElseSequence);
 
-        return newFor(outPos[0], outPipe[0], outList[0], outElseList[0]);
+        return newFor(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
     }
 
     /**
@@ -742,23 +742,23 @@ public class Tree {
     private Node withControl() throws ParseException, InternalException {
         int[] outPos = new int[1];
         Node.Pipe[] outPipe = new Node.Pipe[1];
-        Node.List[] outList = new Node.List[1];
-        Node.List[] outElseList = new Node.List[1];
-        parseControl(false, "with", outPos, outPipe, outList, outElseList);
+        Node.Sequence[] outSequence = new Node.Sequence[1];
+        Node.Sequence[] outElseSequence = new Node.Sequence[1];
+        parseControl(false, "with", outPos, outPipe, outSequence, outElseSequence);
 
-        return newWith(outPos[0], outPipe[0], outList[0], outElseList[0]);
+        return newWith(outPos[0], outPipe[0], outSequence[0], outElseSequence[0]);
     }
 
     private void parseControl(boolean allowElseIf, String context,
                               int[] outPos, Node.Pipe[] outPipe,
-                              Node.List[] outList, Node.List[] outElseList) throws ParseException, InternalException {
+                              Node.Sequence[] outSequence, Node.Sequence[] outElseSequence) throws ParseException, InternalException {
         int varsSize = vars.size();
         try {
             outPipe[0] = pipeline(context);
             Node[] next = new Node[1];
             if (context.equals("for"))
                 ++forDepth;
-            tokenList(outList, next);
+            tokenList(outSequence, next);
             if (context.equals("for"))
                 --forDepth;
 
@@ -775,11 +775,11 @@ public class Tree {
                      */
                     /* Consume the "if" token */
                     next();
-                    outElseList[0] = newList(next[0].pos);
-                    outElseList[0].append(ifControl());
+                    outElseSequence[0] = newList(next[0].pos);
+                    outElseSequence[0].append(ifControl());
 
                 } else { /* Don't consume the next item - only one {end} required */
-                    tokenList(outElseList, next);
+                    tokenList(outElseSequence, next);
                     if (next[0].type != Node.Type.END)
                         errorf("expected end; found %s", next[0]);
                 }
@@ -789,8 +789,8 @@ public class Tree {
         outPos[0] = outPipe[0].pos;
     }
 
-    Node.List newList(int pos) {
-        return new Node.List(this, pos);
+    Node.Sequence newList(int pos) {
+        return new Node.Sequence(this, pos);
     }
 
     Node.Text newText(int pos, String text) {
@@ -937,13 +937,13 @@ public class Tree {
     }
 
     Node.If newIf(int pos, Node.Pipe pipe,
-                  Node.List list, Node.List elseList) {
-        return new Node.If(this, pos, pipe, list, elseList);
+                  Node.Sequence sequence, Node.Sequence elseSequence) {
+        return new Node.If(this, pos, pipe, sequence, elseSequence);
     }
 
     Node.For newFor(int pos, Node.Pipe pipe,
-                    Node.List list, Node.List elseList) {
-        return new Node.For(this, pos, pipe, list, elseList);
+                    Node.Sequence sequence, Node.Sequence elseSequence) {
+        return new Node.For(this, pos, pipe, sequence, elseSequence);
     }
 
     Node.Break newBreak(int pos) {
@@ -955,8 +955,8 @@ public class Tree {
     }
 
     Node.With newWith(int pos, Node.Pipe pipe,
-                      Node.List list, Node.List elseList) {
-        return new Node.With(this, pos, pipe, list, elseList);
+                      Node.Sequence sequence, Node.Sequence elseSequence) {
+        return new Node.With(this, pos, pipe, sequence, elseSequence);
     }
 
     Node.Template newTemplate(int pos, String name, Node.Pipe pipe) {

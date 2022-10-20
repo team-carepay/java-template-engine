@@ -38,11 +38,11 @@ class Exec {
     final PrintWriter pw;
     private Template tmpl;
     private Node node;                           /* current node, for errors */
-    private ArrayList<Template.Variable> vars;   /* stack of variable values */
+    private List<Template.Variable> vars;   /* stack of variable values */
     private int depth;                           /* the height of the stack of executing templates */
     private int forDepth;                 /* nesting level of for loops */
 
-    Exec(Template tmpl, PrintWriter pw, ArrayList<Template.Variable> vars) {
+    Exec(Template tmpl, PrintWriter pw, List<Template.Variable> vars) {
         this.tmpl = tmpl;
         this.pw = pw;
         this.vars = vars;
@@ -171,9 +171,9 @@ class Exec {
         } else if (node instanceof Node.If) {
             Node.If nodeIf = (Node.If) node;
             return walkIfOrWith(Node.Type.IF, dot, nodeIf.pipe,
-                    nodeIf.list, nodeIf.elseList);
-        } else if (node instanceof Node.List) {
-            for (Node n : ((Node.List) node).nodes) {
+                    nodeIf.sequence, nodeIf.elseSequence);
+        } else if (node instanceof Node.Sequence) {
+            for (Node n : ((Node.Sequence) node).nodes) {
                 ForControl c = walk(dot, n);
                 if (c != ForControl.NONE)
                     return c;
@@ -187,7 +187,7 @@ class Exec {
         } else if (node instanceof Node.With) {
             Node.With nodeWith = (Node.With) node;
             return walkIfOrWith(Node.Type.WITH, dot, nodeWith.pipe,
-                    nodeWith.list, nodeWith.elseList);
+                    nodeWith.sequence, nodeWith.elseSequence);
         } else if (node instanceof Node.Break) {
             if (forDepth == 0)
                 errorf("invalid break outside of for");
@@ -208,8 +208,8 @@ class Exec {
      * They are identical in behavior except that 'with' sets dot
      */
     private ForControl walkIfOrWith(Node.Type type, Object dot,
-                                    Node.Pipe pipe, Node.List list,
-                                    Node.List elseList) throws ExecException {
+                                    Node.Pipe pipe, Node.Sequence sequence,
+                                    Node.Sequence elseSequence) throws ExecException {
         int stackSize = stackSize();
         try {
             Object val = evalPipeline(dot, pipe);
@@ -221,11 +221,11 @@ class Exec {
             }
             if (truth) {
                 if (type == Node.Type.WITH)
-                    return walk(val, list);
+                    return walk(val, sequence);
                 else
-                    return walk(dot, list);
-            } else if (elseList != null) {
-                return walk(dot, elseList);
+                    return walk(dot, sequence);
+            } else if (elseSequence != null) {
+                return walk(dot, elseSequence);
             }
         } finally {
             pop(stackSize);
@@ -267,8 +267,8 @@ class Exec {
                 }
             }
             --forDepth;
-            if (f.elseList != null)
-                return walk(dot, f.elseList);
+            if (f.elseSequence != null)
+                return walk(dot, f.elseSequence);
         } finally {
             pop(stackSize);
         }
@@ -279,7 +279,7 @@ class Exec {
     private ForControl forIteration(Node.For f, Object elem, int startStackSize) throws ExecException {
         if (f.pipe.vars.size() == 1)
             setTopVar(1, elem);
-        ForControl c = walk(elem, f.list);
+        ForControl c = walk(elem, f.sequence);
         pop(startStackSize);
 
         return c;
@@ -394,7 +394,7 @@ class Exec {
         } else if (node instanceof Node.Null) {
             return null;
         } else if (node instanceof Node.Field) {
-            ArrayList<Node> args = new ArrayList<>();
+            List<Node> args = new ArrayList<>();
             args.add(node);
             return evalFieldNode(dot, (Node.Field) node, args, null);
         } else if (node instanceof Node.Assign) {
@@ -456,7 +456,7 @@ class Exec {
         boolean hasArgs = args != null && (args.size() > 1 || finalVal != null);
 
         /* Find methods */
-        ArrayList<Method> foundMethods = new ArrayList<>();
+        List<Method> foundMethods = new ArrayList<>();
         for (Method method : methods)
             if (method.getName().equals(fieldName))
                 foundMethods.add(method);
@@ -524,7 +524,7 @@ class Exec {
             args = new ArrayList<>(args.subList(1, args.size()));
 
         int numArgs = (args != null ? args.size() : 0);
-        ArrayList<Object> argv = new ArrayList<>();
+        List<Object> argv = new ArrayList<>();
         /* Add object that calling method (or not if method is static)*/
         if (receiver != null)
             argv.add(receiver);
@@ -535,7 +535,7 @@ class Exec {
             argv.add(finalVal);
 
         Object result = null;
-        ArrayList<String> err = new ArrayList<>();
+        List<String> err = new ArrayList<>();
         String errFmt = "\n(%s): %s";
         /* Try to call method */
         for (Method m : func) {
