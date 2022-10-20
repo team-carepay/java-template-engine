@@ -482,7 +482,7 @@ public class Tree {
         /* Reject empty pipelines */
         if (pipe.cmds.size() == 0)
             errorf("missing value for %s", context);
-        /* Only the first command of a pipeline can start with a non executable operand */
+        /* Only the first command of a pipeline can start with a non-executable operand */
         for (int i = 1; i < pipe.cmds.size(); i++) {
             Node.Command c = pipe.cmds.get(i);
             switch (c.args.get(0).type) {
@@ -893,7 +893,7 @@ public class Tree {
             try {
                 double f = Double.parseDouble(unsignedNum);
                 /*
-                 * If we parsed it as a float but it
+                 * If we parsed it as a float, but it
                  * looks like an integer, it's a huge number
                  * too large to fit in a long. Reject it
                  */

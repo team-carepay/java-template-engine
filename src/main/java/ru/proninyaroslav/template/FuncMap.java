@@ -34,7 +34,7 @@ public class FuncMap {
 	private final HashMap<String, List<Method>> funcs = new HashMap<>();
 
 	/**
-	 * Find static method (or methods, if it overridden) in
+	 * Find static method (or methods, if it is overridden) in
 	 * the specified class and put it in the map.
 	 * The alias is used to call function
 	 *
@@ -57,7 +57,7 @@ public class FuncMap {
 	}
 
 	/**
-	 * Find function (or functions, if it overridden)
+	 * Find function (or functions, if it is overridden)
 	 * by alias name and returns it
 	 *
 	 * @param alias alias of function

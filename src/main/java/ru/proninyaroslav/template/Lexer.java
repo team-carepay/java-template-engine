@@ -403,7 +403,7 @@ class Lexer implements Runnable {
                 case EOF:
                     /*
                      * Restore line number to location of opening quote.
-                     * We will error out so it's ok just to overwrite the field
+                     * We will error out, so it's ok just to overwrite the field
                      */
                     line = startLine;
                     return errorf("unterminated raw quoted string");

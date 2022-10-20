@@ -13,11 +13,18 @@ Java Template Engine documentation
 * [Nested template definitions](documentation.md#nested-template-definitions)
 * [API](documentation.md#api)
 
-Templates are executed by applying them to the class object. Annotations in the template refer to fields and methods of the class object to control execution and derive values to be displayed. Execution of the template walks the object and sets the cursor, represented by a period `.` and called "dot", to the value at the current location in the object as execution proceeds.
+Templates are executed by applying them to the class object. Annotations in the template refer to
+fields and methods of the class object to control execution and derive values to be displayed.
+Execution of the template walks the object and sets the cursor, represented by a period `.` and
+called "dot", to the value at the current location in the object as execution proceeds.
 
-The input text for a template is UTF-8-encoded text in any format. "Actions" - data evaluations or control structures - are delimited by `{{` and `}}` (which can be replaced by other symbols); all text outside actions is copied to the output unchanged. Except for raw strings, actions may not span newlines, although comments can.
+The input text for a template is UTF-8-encoded text in any format. "Actions" - data evaluations or
+control structures - are delimited by `{{` and `}}` (which can be replaced by other symbols); all
+text outside actions is copied to the output unchanged. Except for raw strings, actions may not be
+spanned newlines, although comments can.
 
-Once parsed, a template may be executed safely in parallel, although if parallel executions share a `OutputStream` the output may be interleaved.
+Once parsed, a template may be executed safely in parallel, although if parallel executions share
+a `OutputStream` the output may be interleaved.
 
 This is a simple example that prints "Hello World!":
 
@@ -297,7 +304,8 @@ mod
 	Evaluates arg1 % arg2
 ```
 
-For simpler multi-way equality tests, eq (only) accepts two or more arguments and compares the second and subsequent to the first, returning in effect
+For simpler multi-way equality tests, eq (only) accepts two or more arguments and compares the
+second and after to the first, returning in effect
 
 `arg1 == arg2 || arg1 == arg3 || arg1 == arg4 ...`
 
@@ -326,7 +334,8 @@ The define action names the template being created by providing a string constan
 {{template "T3"}}
 ```
 
-This defines two templates, T1 and T2, and a third T3 that invokes the other two when it is executed. Finally it invokes T3. If executed this template will produce the text
+This defines two templates, T1 and T2, and a third T3 that invokes the other two when it is
+executed. Finally, it invokes T3. If executed this template will produce the text
 
 `FIRST SECOND`
 

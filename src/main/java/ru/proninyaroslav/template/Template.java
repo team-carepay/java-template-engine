@@ -131,8 +131,8 @@ public class Template {
      * will not replace an existing template's body.
      *
      * @param text template text
-     * @throws InternalException in case of a internal error
-     * @throws ParseException    in case of an parse error
+     * @throws InternalException in case of an internal error
+     * @throws ParseException    in case of a parse error
      */
     public void parse(String text) throws InternalException, ParseException {
         HashMap<String, Tree> trees;

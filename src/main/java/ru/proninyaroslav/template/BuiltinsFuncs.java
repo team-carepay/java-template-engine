@@ -103,7 +103,7 @@ public class BuiltinsFuncs {
 
     /**
      * Returns the result of indexing its first argument by
-     * the following arguments, e.g index x 1 2 3 returns x[1][2][3]
+     * the following arguments, e.g. index x 1 2 3 returns x[1][2][3]
      * (or x.get(1).get(2).get(3) if object is List or Map)
      *
      * @param arr     array

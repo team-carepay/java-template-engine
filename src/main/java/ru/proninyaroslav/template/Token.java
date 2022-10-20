@@ -51,6 +51,7 @@ class Token {
         return sb.toString();
     }
 
+    @SuppressWarnings("GrazieInspection")
     public enum Type {
         ERROR,              /* error occurred; value is text of error */
         TEXT,               /* plain text */
