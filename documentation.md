@@ -27,7 +27,7 @@ template.parse("{{`Hello World!`}}");
 template.execute(System.out, new Example());
 ```
 
-More intricate example in [Example.java](https://gitlab.com/proninyaroslav/java-template-engine/blob/master/src/test/java/ru/proninyaroslav/template/example/Example.java) file.
+More intricate example in [Example.java](https://gitlab.com/diegourban/java-template-engine/blob/master/src/test/java/ru/proninyaroslav/template/example/Example.java) file.
 
 Actions
 ---
