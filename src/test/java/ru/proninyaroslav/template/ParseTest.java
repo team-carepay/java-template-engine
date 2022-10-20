@@ -320,7 +320,7 @@ public class ParseTest {
             }
     }
 
-    class TestParse {
+    static class TestParse {
         final String name;
         final String input;
         final String result;
@@ -335,7 +335,7 @@ public class ParseTest {
         }
     }
 
-    class TestNumber {
+    static class TestNumber {
         final String text;
         final boolean isInt;
         final boolean isFloat;

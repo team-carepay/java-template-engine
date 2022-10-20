@@ -79,7 +79,7 @@ public class MultiTest {
         }
     }
 
-    class TestMultiParse {
+    static class TestMultiParse {
         final String name;
         final String input;
         final boolean hasError;

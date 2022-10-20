@@ -324,7 +324,7 @@ public class Template {
     /**
      * Holds the information shared by related templates
      */
-    class Common {
+    static class Common {
         /* Protects funcs */
         final ReentrantLock funcsLock = new ReentrantLock();
         final FuncMap funcs;
