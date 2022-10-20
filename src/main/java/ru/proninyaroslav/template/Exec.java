@@ -35,7 +35,7 @@ import ru.proninyaroslav.template.exceptions.ExecException;
 
 class Exec {
     private static final int maxExecDepth = 1500; /* Max nesting of templates */
-    PrintWriter pw;
+    final PrintWriter pw;
     private Template tmpl;
     private Node node;                           /* current node, for errors */
     private ArrayList<Template.Variable> vars;   /* stack of variable values */

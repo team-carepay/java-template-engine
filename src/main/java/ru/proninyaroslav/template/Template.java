@@ -37,9 +37,9 @@ import ru.proninyaroslav.template.exceptions.ParseException;
  */
 
 public class Template {
-    String name;
+    final String name;
     Tree tree;
-    Common common;
+    final Common common;
     private String leftDelim;
     private String rightDelim;
 
@@ -312,7 +312,7 @@ public class Template {
      * Holds the dynamic value of a variable
      */
     static class Variable {
-        String name;
+        final String name;
         Object value;
 
         Variable(String name, Object value) {
@@ -327,8 +327,8 @@ public class Template {
     class Common {
         /* Protects funcs */
         final ReentrantLock funcsLock = new ReentrantLock();
-        FuncMap funcs;
-        HashMap<String, Template> tmpl;
+        final FuncMap funcs;
+        final HashMap<String, Template> tmpl;
 
         Common() {
             tmpl = new HashMap<>();

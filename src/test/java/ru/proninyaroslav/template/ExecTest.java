@@ -350,14 +350,14 @@ public class ExecTest {
     }
 
     static class T {
-        public boolean truth = true;
-        public int i = 123;
-        public String x = "x";
+        public final boolean truth = true;
+        public final int i = 123;
+        public final String x = "x";
         public double floatZero;
         /* Nested class */
         public U u = new U("v");
         /* Class with toString() method */
-        public V v = new V(123);
+        public final V v = new V(123);
         /* Arrays */
         public int[] iArr = new int[]{1, 2, 3};
         public int[] iArrNull;
@@ -367,8 +367,8 @@ public class ExecTest {
         public Map<String, Integer> siMap = newSiMap();
         public Map<String, Integer> siMapNull;
         /* Template to test evaluation of templates */
-        public Template tmpl = newTmpl();
-        public ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        public final Template tmpl = newTmpl();
+        public final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         public int sameName = 1;
         /* Private field; cannot be accessed by template */
         private int priv;
@@ -446,7 +446,7 @@ public class ExecTest {
     }
 
     static class U {
-        public String v;
+        public final String v;
 
         U(String v) {
             this.v = v;
@@ -454,7 +454,7 @@ public class ExecTest {
     }
 
     static class V {
-        public int j;
+        public final int j;
 
         V(int j) {
             this.j = j;
@@ -467,11 +467,11 @@ public class ExecTest {
     }
 
     public class TestExec {
-        String name;
-        String input;
-        String output;
-        Object data;
-        boolean hasError;
+        final String name;
+        final String input;
+        final String output;
+        final Object data;
+        final boolean hasError;
 
         TestExec(String name, String input, String output,
                  Object data, boolean hasError) {

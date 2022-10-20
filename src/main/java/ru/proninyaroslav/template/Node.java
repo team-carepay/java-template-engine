@@ -25,7 +25,7 @@ import ru.proninyaroslav.template.exceptions.ParseException;
  */
 
 abstract class Node {
-    public Type type;
+    public final Type type;
     public int pos;
     protected Tree tree;
 
@@ -69,7 +69,7 @@ abstract class Node {
      * Holds a sequence of nodes
      */
     public static class List extends Node {
-        public ArrayList<Node> nodes;
+        public final ArrayList<Node> nodes;
 
         public List(Tree tree, int pos) {
             super(tree, Type.LIST, pos);
@@ -107,7 +107,7 @@ abstract class Node {
      * Holds a plain text
      */
     public static class Text extends Node {
-        public String text; /* may span newlines */
+        public final String text; /* may span newlines */
 
         public Text(Tree tree, int pos, String text) {
             super(tree, Type.TEXT, pos);
@@ -131,7 +131,7 @@ abstract class Node {
     public static class Pipe extends Node {
         public boolean decl;      /* the variables are being declared, not assigned */
         ArrayList<Assign> vars;   /* variables in lexical order */
-        ArrayList<Command> cmds;  /* the commands in lexical order */
+        final ArrayList<Command> cmds;  /* the commands in lexical order */
 
         public Pipe(Tree tree, int pos, java.util.List<Assign> vars) {
             super(tree, Type.PIPE, pos);
@@ -184,7 +184,7 @@ abstract class Node {
      * The dollar sign is part of the (first) name
      */
     public static class Assign extends Node {
-        public ArrayList<String> ident; /* variable name and fields in lexical order */
+        public final ArrayList<String> ident; /* variable name and fields in lexical order */
 
         public Assign(Tree tree, int pos, java.util.List<String> ident) {
             super(tree, Type.VARIABLE, pos);
@@ -213,7 +213,7 @@ abstract class Node {
      * Holds a command (a pipeline inside an evaluating action)
      */
     public static class Command extends Node {
-        public ArrayList<Node> args; /* arguments in lexical order: identifier, field, or constant */
+        public final ArrayList<Node> args; /* arguments in lexical order: identifier, field, or constant */
 
         public Command(Tree tree, int pos) {
             super(tree, Type.COMMAND, pos);
@@ -257,7 +257,7 @@ abstract class Node {
      * ones such as field evaluations and parenthesized pipelines
      */
     public static class Action extends Node {
-        public Pipe pipe;
+        public final Pipe pipe;
 
         public Action(Tree tree, int pos, Pipe pipe) {
             super(tree, Type.ACTION, pos);
@@ -276,7 +276,7 @@ abstract class Node {
     }
 
     public static class Identifier extends Node {
-        public String ident; /* the identifier's name */
+        public final String ident; /* the identifier's name */
 
         public Identifier(Tree tree, int pos, String ident) {
             super(tree, Type.IDENTIFIER, pos);
@@ -335,7 +335,7 @@ abstract class Node {
      * The dot is dropped from each ident
      */
     public static class Field extends Node {
-        public ArrayList<String> ident; /* variable name and fields in lexical order */
+        public final ArrayList<String> ident; /* variable name and fields in lexical order */
 
         public Field(Tree tree, int pos, java.util.List<String> ident) {
             super(tree, Type.FIELD, pos);
@@ -363,8 +363,8 @@ abstract class Node {
      * The names may be chained ('.x.y'). The periods are dropped from each ident
      */
     public static class Chain extends Node {
-        public ArrayList<String> field; /* the identifiers in lexical order */
-        public Node node;
+        public final ArrayList<String> field; /* the identifiers in lexical order */
+        public final Node node;
 
         public Chain(Tree tree, int pos, Node node) {
             super(tree, Type.CHAIN, pos);
@@ -412,7 +412,7 @@ abstract class Node {
     }
 
     public static class Bool extends Node {
-        public boolean boolVal;
+        public final boolean boolVal;
 
         public Bool(Tree tree, int pos, boolean boolVal) {
             super(tree, Type.BOOL, pos);
@@ -440,7 +440,7 @@ abstract class Node {
         public boolean isFloat;
         public int intVal;
         public double floatVal;
-        public String text; /* the original textual representation from the input */
+        public final String text; /* the original textual representation from the input */
 
         public Number(Tree tree, int pos, String text) {
             super(tree, Type.NUMBER, pos);
@@ -471,8 +471,8 @@ abstract class Node {
      * Holds a string constant. The value has been unquoted
      */
     public static class StringConst extends Node {
-        public String quoted;   /* the original text of the string, with quotes */
-        public String text;     /* the string, after quote processing */
+        public final String quoted;   /* the original text of the string, with quotes */
+        public final String text;     /* the string, after quote processing */
 
         public StringConst(Tree tree, int pos, String quoted, String text) {
             super(tree, Type.STRING, pos);
@@ -535,9 +535,9 @@ abstract class Node {
      * The common representation of if, with and for
      */
     public static class Branch extends Node {
-        Pipe pipe;      /* the pipeline to be evaluated */
-        List list;      /* what to execute if the value is non-empty */
-        List elseList;  /* what to execute if the value is empty (null if absent) */
+        final Pipe pipe;      /* the pipeline to be evaluated */
+        final List list;      /* what to execute if the value is non-empty */
+        final List elseList;  /* what to execute if the value is empty (null if absent) */
 
         public Branch(Tree tree, Type type, int pos,
                       Pipe pipe, List list, List elseList) {
@@ -662,8 +662,8 @@ abstract class Node {
      * Represents a {template} action
      */
     public static class Template extends Node {
-        public String name;     /* the name of the template (unquoted) */
-        public Pipe pipe;       /* the command to evaluate as dot for the template */
+        public final String name;     /* the name of the template (unquoted) */
+        public final Pipe pipe;       /* the command to evaluate as dot for the template */
 
         public Template(Tree tree, int pos, String name, Pipe pipe) {
             super(tree, Type.TEMPLATE, pos);

@@ -17,10 +17,10 @@
 package ru.proninyaroslav.template;
 
 class Token {
-    public Type type;
-    public int pos;        /* the starting position, in bytes, of this token in the input string */
-    public String val;    /* the value of this token */
-    public int line;    /* the line number at the start of this token */
+    public final Type type;
+    public final int pos;        /* the starting position, in bytes, of this token in the input string */
+    public final String val;    /* the value of this token */
+    public final int line;    /* the line number at the start of this token */
 
     public Token(Type type, int pos, String val, int line) {
         this.type = type;

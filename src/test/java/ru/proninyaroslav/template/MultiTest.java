@@ -80,11 +80,11 @@ public class MultiTest {
     }
 
     class TestMultiParse {
-        String name;
-        String input;
-        boolean hasError;
-        String[] names;
-        String[] results;
+        final String name;
+        final String input;
+        final boolean hasError;
+        final String[] names;
+        final String[] results;
 
         public TestMultiParse(String name, String input, boolean hasError,
                               String[] names, String[] results) {

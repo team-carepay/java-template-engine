@@ -348,11 +348,11 @@ public class BuiltinsFuncsTest {
         }
     }
 
-    class TestCompare {
-        Object arg1;
-        Object[] arg2;
-        Object expect;
-        String op;
+    static class TestCompare {
+        final Object arg1;
+        final Object[] arg2;
+        final Object expect;
+        final String op;
 
         TestCompare(String op, Object expect, Object arg1, Object... arg2) {
             this.arg1 = arg1;
@@ -372,11 +372,11 @@ public class BuiltinsFuncsTest {
         }
     }
 
-    class TestArithmetic {
-        Object a;
-        Object b;
-        Object expect;
-        char op;
+    static class TestArithmetic {
+        final Object a;
+        final Object b;
+        final Object expect;
+        final char op;
 
         TestArithmetic(Object a, Object b, char op, Object expect) {
             this.a = a;

@@ -321,10 +321,10 @@ public class ParseTest {
     }
 
     class TestParse {
-        String name;
-        String input;
-        String result;
-        boolean hasError;
+        final String name;
+        final String input;
+        final String result;
+        final boolean hasError;
 
         public TestParse(String name, String input,
                          String result, boolean hasError) {
@@ -336,11 +336,11 @@ public class ParseTest {
     }
 
     class TestNumber {
-        String text;
-        boolean isInt;
-        boolean isFloat;
-        int intVal;
-        double floatVal;
+        final String text;
+        final boolean isInt;
+        final boolean isFloat;
+        final int intVal;
+        final double floatVal;
 
         TestNumber(String text, boolean isInt, boolean isFloat,
                    int intVal, double floatVal) {

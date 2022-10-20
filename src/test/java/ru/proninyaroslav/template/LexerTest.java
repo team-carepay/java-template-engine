@@ -410,10 +410,10 @@ public class LexerTest {
         return tokens.toArray(new Token[tokens.size()]);
     }
 
-    class TestLex {
-        String name;
-        String input;
-        Token[] tokens;
+    static class TestLex {
+        final String name;
+        final String input;
+        final Token[] tokens;
 
         TestLex(String name, String input, Token... tokens) {
             this.name = name;

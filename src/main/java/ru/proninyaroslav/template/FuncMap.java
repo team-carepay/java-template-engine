@@ -30,7 +30,7 @@ import java.util.Map;
  */
 
 public class FuncMap {
-	static FuncMap builtins = BuiltinsFuncs.create();
+	static final FuncMap builtins = BuiltinsFuncs.create();
 	private final HashMap<String, List<Method>> funcs = new HashMap<>();
 
 	/**
