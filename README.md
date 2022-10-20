@@ -1,7 +1,7 @@
 Java Template Engine
 =====================
 
-[![Maven](https://img.shields.io/maven-central/v/io.github.diegourban/java-template-engine.svg)](https://search.maven.org/artifact/ru.proninyaroslav/java-template-engine/1.4.0/jar) [![Javadocs](http://www.javadoc.io/badge/ru.proninyaroslav/java-template-engine.svg)](http://www.javadoc.io/doc/io.github.diegourban/java-template-engine)
+[![Maven](https://img.shields.io/maven-central/v/io.github.diegourban/java-template-engine.svg)](https://search.maven.org/artifact/io.github.diegourban/java-template-engine/1.4.0/jar) [![Javadocs](http://www.javadoc.io/badge/io.github.diegourban/java-template-engine.svg)](http://www.javadoc.io/doc/io.github.diegourban/java-template-engine)
 
 Golang-like template engine for Java. Implements data-driven templates for generating textual output.
 
