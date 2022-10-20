@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class FuncMap {
 	static final FuncMap builtins = BuiltinsFuncs.create();
-	private final HashMap<String, List<Method>> funcs = new HashMap<>();
+	private final Map<String, List<Method>> funcs = new HashMap<>();
 
 	/**
 	 * Find static method (or methods, if it is overridden) in

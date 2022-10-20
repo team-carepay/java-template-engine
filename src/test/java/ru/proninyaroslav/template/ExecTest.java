@@ -247,7 +247,7 @@ public class ExecTest {
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         FuncMap funcs = new FuncMap();
-        HashMap<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
         map.put("varargsFunc", "varargsFunc");
         map.put("binaryFunc", "binaryFunc");
         map.put("varargsFuncInt", "varargsFuncInt");

@@ -272,7 +272,7 @@ class Utils {
     }
 
     static Map<String, String> filesToString(File... files) throws IOException {
-        HashMap<String, String> s = new HashMap<>();
+        Map<String, String> s = new HashMap<>();
         for (File file : files)
             s.put(file.getName(), new String(FileUtils.bytes(file)));
 

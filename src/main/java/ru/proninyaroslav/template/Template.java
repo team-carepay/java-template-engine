@@ -135,7 +135,7 @@ public class Template {
      * @throws ParseException    in case of a parse error
      */
     public void parse(String text) throws InternalException, ParseException {
-        HashMap<String, Tree> trees;
+        Map<String, Tree> trees;
         common.funcsLock.lock();
         try {
             trees = Tree.parse(name, text, leftDelim,
@@ -328,7 +328,7 @@ public class Template {
         /* Protects funcs */
         final ReentrantLock funcsLock = new ReentrantLock();
         final FuncMap funcs;
-        final HashMap<String, Template> tmpl;
+        final Map<String, Template> tmpl;
 
         Common() {
             tmpl = new HashMap<>();

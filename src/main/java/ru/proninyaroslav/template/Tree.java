@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ru.proninyaroslav.template.exceptions.InternalException;
 import ru.proninyaroslav.template.exceptions.ParseException;
@@ -40,7 +41,7 @@ public class Tree {
     private int forDepth;            /* nesting level of for loops */
     private FuncMap[] funcs;
     private List<String> vars;         /* variables defined at the moment */
-    private HashMap<String, Tree> treeSet;
+    private Map<String, Tree> treeSet;
 
     public Tree(String name, String parseName,
                 String text, FuncMap... funcs) {
@@ -55,10 +56,10 @@ public class Tree {
         this.funcs = funcs;
     }
 
-    public static HashMap<String, Tree> parse(String name, String text,
-                                              String leftDelim, String rightDelim,
-                                              FuncMap... funcs) throws ParseException, InternalException {
-        HashMap<String, Tree> treeSet = new HashMap<>();
+    public static Map<String, Tree> parse(String name, String text,
+                                          String leftDelim, String rightDelim,
+                                          FuncMap... funcs) throws ParseException, InternalException {
+        Map<String, Tree> treeSet = new HashMap<>();
         Tree tree = new Tree(name);
         tree.text = text;
         tree.parse(text, leftDelim, rightDelim, treeSet, funcs);
@@ -92,7 +93,7 @@ public class Tree {
     }
 
     private void parse(String text, String leftDelim, String rightDelim,
-                       HashMap<String, Tree> treeSet, FuncMap... funcs) throws ParseException, InternalException {
+                       Map<String, Tree> treeSet, FuncMap... funcs) throws ParseException, InternalException {
         try {
             parseName = name;
             startParse(funcs, new Lexer(name, text, leftDelim, rightDelim), treeSet);
@@ -105,7 +106,7 @@ public class Tree {
         }
     }
 
-    private void startParse(FuncMap[] funcs, Lexer lex, HashMap<String, Tree> treeSet) {
+    private void startParse(FuncMap[] funcs, Lexer lex, Map<String, Tree> treeSet) {
         this.lex = lex;
         this.funcs = funcs;
         this.treeSet = treeSet;

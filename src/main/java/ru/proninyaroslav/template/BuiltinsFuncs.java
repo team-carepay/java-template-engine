@@ -24,7 +24,7 @@ import java.util.Map;
 public class BuiltinsFuncs {
     static FuncMap create() {
         FuncMap fm = new FuncMap();
-        HashMap<String, String> builtins = new HashMap<>();
+        Map<String, String> builtins = new HashMap<>();
         builtins.put("range", "range");
         builtins.put("index", "index");
 

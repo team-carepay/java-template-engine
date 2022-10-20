@@ -18,8 +18,8 @@ package ru.proninyaroslav.template;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -212,7 +212,7 @@ public class ParseTest {
         for (TestParse test : tests) {
             Template tmpl = new Template(test.name);
             try {
-                HashMap<String, Tree> trees = Tree.parse(test.name, test.input,
+                Map<String, Tree> trees = Tree.parse(test.name, test.input,
                         null, null, builtins);
                 for (String name : trees.keySet())
                     tmpl.addParseTree(name, trees.get(name));

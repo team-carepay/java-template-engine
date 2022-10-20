@@ -17,13 +17,14 @@
 package ru.proninyaroslav.template;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import ru.proninyaroslav.template.exceptions.InternalException;
 
 class Lexer implements Runnable {
-    private static final HashMap<String, Token.Type> words = initWords();
+    private static final Map<String, Token.Type> words = initWords();
     private static final char EOF = '\0';
     private static final char MAX_ASCII = '\u007F'; /* maximum ASCII value */
     private static final String defaultLeftDelim = "{{";
@@ -51,8 +52,8 @@ class Lexer implements Runnable {
         new Thread(this).start();
     }
 
-    private static HashMap<String, Token.Type> initWords() {
-        HashMap<String, Token.Type> map = new HashMap<>();
+    private static Map<String, Token.Type> initWords() {
+        Map<String, Token.Type> map = new HashMap<>();
 
         map.put(".", Token.Type.DOT);
         map.put("define", Token.Type.DEFINE);
