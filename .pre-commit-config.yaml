@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-yaml
+        args: [ --allow-multiple-documents ]
+      - id: trailing-whitespace
