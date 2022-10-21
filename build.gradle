@@ -22,7 +22,7 @@ dependencies {
 }
 
 group = 'io.github.diegourban'
-version = '1.4.0'
+version = '1.5.0'
 description = 'Java Template Engine'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
