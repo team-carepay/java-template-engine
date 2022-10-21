@@ -6,8 +6,8 @@ Java Template Engine
 Golang-like template engine for Java. Implements data-driven templates for generating textual
 output.
 
-### Requirements
-
+Requirements
+---
 Java >= **1.8**
 
 Usage
