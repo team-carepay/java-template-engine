@@ -8,13 +8,15 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'signing'
+
+    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
+}
+
+configurations {
+    testImplementation.extendsFrom compileOnly
 }
 
 repositories {
-    mavenLocal()
-    maven {
-        url = uri('https://repo.maven.apache.org/maven2/')
-    }
     mavenCentral()
 }
 
@@ -25,30 +27,22 @@ dependencies {
 group = 'io.github.diegourban'
 version = '1.5.0'
 description = 'Java Template Engine'
-java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 java {
     withSourcesJar()
     withJavadocJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-parameters'
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'java-template-engine'
             from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
             pom {
                 name = 'Java Template Engine'
                 description = 'Golang-like template engine for Java. Implements data-driven templates for generating textual output.'
@@ -72,30 +66,52 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git@github.com:diegourban/java-template-engine.git'
-                    developerConnection = 'scm:git@github.com:diegourban/java-template-engine.git'
-                    url = 'https://github.com/diegourban/java-template-engine.git'
+                    connection = 'scm:git:git://github.com:diegourban/java-template-engine.git'
+                    developerConnection = 'scm:git:ssh://github.com:diegourban/java-template-engine'
+                    url = 'https://github.com/diegourban/java-template-engine'
                 }
             }
         }
     }
     repositories {
         maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
-            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/team-carepay/carepool-aws-jdbc")
+            credentials {
+                username = githubUsername
+                password = githubPassword
+            }
         }
     }
 }
 
 signing {
+    required = { gradle.taskGraph.hasTask("publish") }
     sign publishing.publications.mavenJava
 }
 
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
+jacocoTestReport {
+    reports.xml.enabled true
+}
 
-javadoc {
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+release {
+    tagCommitMessage = 'Release tag [skip ci]'
+    newVersionCommitMessage = 'New version [skip ci]'
+    git {
+        requireBranch = ''
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            stagingProfileId = '?'
+        }
     }
 }
