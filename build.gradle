@@ -25,7 +25,6 @@ dependencies {
 }
 
 group = 'io.github.diegourban'
-version = '1.5.0'
 description = 'Java Template Engine'
 
 java {
@@ -76,7 +75,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/team-carepay/carepool-aws-jdbc")
+            url = uri("https://maven.pkg.github.com/diegourban/java-template-engine")
             credentials {
                 username = githubUsername
                 password = githubPassword
