@@ -8,6 +8,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'signing'
+    id 'jacoco'
 
     id 'org.sonarqube' version '2.8'
     id 'net.researchgate.release' version '2.8.1'
@@ -73,14 +74,17 @@ publishing {
                 }
             }
         }
+        gpr(MavenPublication) {
+            from(components.java)
+        }
     }
     repositories {
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/diegourban/java-template-engine")
             credentials {
-                username = githubUsername
-                password = githubPassword
+                username = project.findProperty("gpr.user") ?: System.getenv("RELEASE_USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("RELEASE_TOKEN")
             }
         }
     }
