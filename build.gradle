@@ -83,8 +83,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/diegourban/java-template-engine")
             credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("RELEASE_USERNAME")
-                password = project.findProperty("gpr.key") ?: System.getenv("RELEASE_TOKEN")
+                username = githubUsername
+				password = githubPassword
             }
         }
     }
