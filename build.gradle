@@ -27,7 +27,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-group = 'io.github.diegourban'
+group = 'com.carepay'
 description = 'Java Template Engine'
 
 java {
@@ -48,7 +48,7 @@ publishing {
             pom {
                 name = 'Java Template Engine'
                 description = 'Golang-like template engine for Java. Implements data-driven templates for generating textual output.'
-                url = 'https://github.com/diegourban/java-template-engine'
+                url = 'https://github.com/team-carepay/java-template-engine'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -68,23 +68,20 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git://github.com:diegourban/java-template-engine.git'
-                    developerConnection = 'scm:git:ssh://github.com:diegourban/java-template-engine'
-                    url = 'https://github.com/diegourban/java-template-engine'
+                    connection = 'scm:git:git://github.com:team-carepay/java-template-engine.git'
+                    developerConnection = 'scm:git:ssh://github.com:team-carepay/java-template-engine'
+                    url = 'https://github.com/team-carepay/java-template-engine'
                 }
             }
-        }
-        gpr(MavenPublication) {
-            from(components.java)
         }
     }
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/diegourban/java-template-engine")
+            url = uri("https://maven.pkg.github.com/team-carepay/java-template-engine")
             credentials {
                 username = githubUsername
-		password = githubPassword
+                password = githubPassword
             }
         }
     }
@@ -116,7 +113,8 @@ nexusPublishing {
     repositories {
         sonatype {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            stagingProfileId = '?'
+            stagingProfileId = '10134d502bbe18'
         }
     }
 }
+
