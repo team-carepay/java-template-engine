@@ -84,7 +84,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/diegourban/java-template-engine")
             credentials {
                 username = githubUsername
-				password = githubPassword
+		password = githubPassword
             }
         }
     }
