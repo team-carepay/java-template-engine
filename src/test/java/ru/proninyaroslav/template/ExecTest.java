@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -32,219 +31,14 @@ public class ExecTest {
     @Test
     public void testExec() {
         List<TestExec> tests = new ArrayList<>();
+        List<Object> ts = new ArrayList<>();
         T t = new T();
+        ts.add(t);
         tests.add(new TestExec("empty", "", "", null, false));
         tests.add(new TestExec("text", "hello world", "hello world",
                 null, false));
-        tests.add(new TestExec(".x", "{{.x}}", "x", t, false));
-        tests.add(new TestExec(".u.v", "{{.u.v}}", "v", t, false));
-        tests.add(new TestExec("map <one>", "{{.siMap.get `one`}}",
-                "1", t, false));
-        tests.add(new TestExec("dot int", "{{.}}", "123", 123, false));
-        tests.add(new TestExec("dot float", "{{.}}", "1.2", 1.2, false));
-        tests.add(new TestExec("dot boolean", "{{.}}", "true", true, false));
-        tests.add(new TestExec("dot string", "{{.}}", "hello world",
-                "hello world", false));
-        tests.add(new TestExec("dot int", "{{.}}", "123", 123, false));
-        tests.add(new TestExec("dot array", "{{.}}", "[1, 2, 3]",
-                new int[]{1, 2, 3}, false));
-        tests.add(new TestExec("dot object", "{{.}}", t.toString(),
-                t, false));
-        tests.add(new TestExec("$ int", "{{$}}", "123", 123, false));
-        tests.add(new TestExec("$.i", "{{$.i}}", "123", t, false));
-        tests.add(new TestExec("$.u.v", "{{$.u.v}}", "v", t, false));
-        tests.add(new TestExec("declare in action", "{{$x := $.u.v}}{{$x}}",
-                "v", t, false));
-        tests.add(new TestExec("simple assignment", "{{$x := 2}}{{$x = 3}}{{$x}}",
-                "3", t, false));
-        tests.add(new TestExec("nested assignment",
-                "{{$x := 2}}{{if true}}{{$x = 3}}{{end}}{{$x}}",
-                "3", t, false));
-        tests.add(new TestExec("nested assignment changes the last declaration",
-                "{{$x := 1}}{{if true}}{{$x := 2}}{{if true}}{{$x = 3}}{{end}}{{end}}{{$x}}",
-                "1", t, false));
-        tests.add(new TestExec("v.toString()", "{{.v}}", t.v.toString(),
-                t, false));
-        tests.add(new TestExec(".meth0", "{{.meth0}}", t.meth0(),
-                t, false));
-        tests.add(new TestExec(".meth1 123", "{{.meth1 123}}",
-                Integer.toString(t.meth1(123)), t, false));
-        tests.add(new TestExec(".meth1 .i", "{{.meth1 .i}}",
-                Integer.toString(t.meth1(t.i)), t, false));
-        tests.add(new TestExec(".meth2 1 .x", "{{.meth2 1 .x}}",
-                t.meth2(1, t.x), t, false));
-        tests.add(new TestExec(".meth2 1 `test`", "{{.meth2 1 `test`}}",
-                t.meth2(1, "test"), t, false));
-        tests.add(new TestExec(".meth3 null", "{{.meth3 null}}",
-                t.meth3(null), t, false));
-        tests.add(new TestExec("method on var", "{{if $x := .}}{{$x.meth2 1 $x.x}}{{end}}",
-                t.meth2(1, t.x), t, false));
-        tests.add(new TestExec("exec template", "{{execTemplate .}}",
-                "test template", t, false));
-        tests.add(new TestExec("binaryFunc", "{{binaryFunc `1` `2`}}",
-                T.binaryFunc("1", "2"), null, false));
-        tests.add(new TestExec("varargsFunc0", "{{varargsFunc}}",
-                T.varargsFunc(), null, false));
-        tests.add(new TestExec("varargsFunc2", "{{varargsFunc `he` `llo`}}",
-                T.varargsFunc("he", "llo"), null, false));
-        tests.add(new TestExec("varargsFuncInt", "{{varargsFuncInt 1 `he` `llo`}}",
-                T.varargsFuncInt(1, "he", "llo"), null, false));
-        tests.add(new TestExec("pipeline", "{{.meth0 | .meth2 1}}",
-                t.meth2(1, t.meth0()), t, false));
-        tests.add(new TestExec("pipeline func", "{{varargsFunc `llo` | varargsFunc `he`}}",
-                T.varargsFunc("he", T.varargsFunc("llo")),
-                t, false));
-        tests.add(new TestExec("parens in pipeline",
-                "{{printf `%d %d %d` (1) (2 | add 3) (add 4 (add 5 6))}}",
-                "1 5 15", null, false));
-        tests.add(new TestExec("parens: $ in paren", "{{($).x}}", "x",
-                t, false));
-        tests.add(new TestExec("parens: $.u in paren", "{{($.u).v}}", "v",
-                t, false));
-        tests.add(new TestExec("parens: $ in paren in pipe",
-                "{{($.x | print).length}}", "1",
-                t, false));
-        tests.add(new TestExec("if true", "{{if true}}TRUE{{end}}", "TRUE",
-                null, false));
-        tests.add(new TestExec("if false",
-                "{{if false}}TRUE{{else}}FALSE{{end}}",
-                "FALSE", null, false));
-        tests.add(new TestExec("if 1",
-                "{{if 1}}NON ZERO{{else}}ZERO{{end}}",
-                "NON ZERO", null, false));
-        tests.add(new TestExec("if 0",
-                "{{if 0}}NON ZERO{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("if 1.2",
-                "{{if 1.2}}NON ZERO{{else}}ZERO{{end}}",
-                "NON ZERO", null, false));
-        tests.add(new TestExec("if 0.0",
-                "{{if 0.0}}NON ZERO{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("if empty string",
-                "{{if ``}}NON EMPTY{{else}}EMPTY{{end}}",
-                "EMPTY", null, false));
-        tests.add(new TestExec("if string",
-                "{{if `test`}}NON EMPTY{{else}}EMPTY{{end}}",
-                "NON EMPTY", null, false));
-        tests.add(new TestExec("if $x with $y int",
-                "{{if $x := true}}{{with $y := .i}}{{$x}},{{$y}}{{end}}{{end}}",
-                "true,123", t, false));
-        tests.add(new TestExec("if $x with $x int",
-                "{{if $x := true}}{{with $x := .i}}{{$x}},{{end}}{{$x}}{{end}}",
-                "123,true", t, false));
-        tests.add(new TestExec("if else if",
-                "{{if false}}FALSE{{else if true}}TRUE{{end}}",
-                "TRUE", null, false));
-        tests.add(new TestExec("if else chain",
-                "{{if eq 1 3}}1{{else if eq 2 3}}2{{else if eq 3 3}}3{{end}}",
-                "3", null, false));
-        tests.add(new TestExec("with true",
-                "{{with true}}{{.}}{{end}}", "true",
-                null, false));
-        tests.add(new TestExec("with false",
-                "{{with false}}{{.}}{{else}}FALSE{{end}}",
-                "FALSE", null, false));
-        tests.add(new TestExec("with 1",
-                "{{with 1}}{{.}}{{else}}ZERO{{end}}",
-                "1", null, false));
-        tests.add(new TestExec("with 0",
-                "{{with 0}}{{.}}{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("with 1.2",
-                "{{with 1.2}}{{.}}{{else}}ZERO{{end}}",
-                "1.2", null, false));
-        tests.add(new TestExec("with 0.0",
-                "{{with 0.0}}{{.}}{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("with empty string",
-                "{{with ``}}{{.}}{{else}}EMPTY{{end}}",
-                "EMPTY", null, false));
-        tests.add(new TestExec("with string",
-                "{{with `test`}}{{.}}{{else}}EMPTY{{end}}",
-                "test", null, false));
-        tests.add(new TestExec("with null arr",
-                "{{with .iArrNull}}{{.}}{{else}}NULL{{end}}",
-                "NULL", t, false));
-        tests.add(new TestExec("with arr",
-                "{{with .iArr}}{{.}}{{else}}NULL{{end}}",
-                "[1, 2, 3]", t, false));
-        tests.add(new TestExec("with $x int",
-                "{{with $x := .i}}{{$x}}{{end}}", "123",
-                t, false));
-        tests.add(new TestExec("with $x .u.v",
-                "{{with $x := $}}{{$x.u.v}}{{end}}", "v",
-                t, false));
-        tests.add(new TestExec("with variable and action",
-                "{{with $x := $}}{{$y := $.u.v}}{{$y}}{{end}}",
-                "v", t, false));
-        tests.add(new TestExec("for int[]",
-                "{{for .iArr}}-{{.}}-{{end}}",
-                "-1--2--3-", t, false));
-        tests.add(new TestExec("for null no else",
-                "{{for .iArrNull}}-{{.}}-{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for int[] else",
-                "{{for .iArr}}-{{.}}-{{else}}NULL{{end}}",
-                "-1--2--3-", t, false));
-        tests.add(new TestExec("for null else",
-                "{{for .iArrNull}}-{{.}}-{{else}}NULL{{end}}",
-                "NULL", t, false));
-        tests.add(new TestExec("for boolean[]",
-                "{{for .bArr}}-{{.}}-{{end}}",
-                "-true--false-", t, false));
-        tests.add(new TestExec("for range function",
-                "{{for range 3}}-{{.}}-{{end}}",
-                "-0--1--2-", null, false));
-        tests.add(new TestExec("for $x iArr",
-                "{{for $x := .iArr}}<{{$x}}>{{end}}",
-                "<1><2><3>", t, false));
-        tests.add(new TestExec("declare in for",
-                "{{for $x := .iArr}}<{{$foo := $x}}{{$x}}>{{end}}",
-                "<1><2><3>", t, false));
-        tests.add(new TestExec("for quick break",
-                "{{for .iArr}}{{break}}{{.}}{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for break after two",
-                "{{for range 10}}{{if ge . 2}}{{break}}{{end}}-{{.}}-{{end}}",
-                "-0--1-", null, false));
-        tests.add(new TestExec("for continue",
-                "{{for .iArr}}{{continue}}{{.}}{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for continue condition",
-                "{{for .iArr}}{{if eq . 2}}{{continue}}{{end}}-{{.}}-{{end}}",
-                "-1--3-", t, false));
-        /* Errors */
-        tests.add(new TestExec("null action", "{{null}}", "", null, true));
-        tests.add(new TestExec("private field", "{{.priv}}", "", t, true));
-        tests.add(new TestExec("if null", "{{if null}}TRUE{{end}}", "",
-                null, true));
-        tests.add(new TestExec("arguments without function", "{{1 2}}",
-                "", null, true));
-        tests.add(new TestExec("number var as function", "{{$x := 1}}{{$x 2}}",
-                "", null, true));
-        tests.add(new TestExec("number var as function with pipeline",
-                "{{$x := 1}}{{2 | $x}}", "", null, true));
-        tests.add(new TestExec("binaryFuncTooFew", "{{binaryFunc `1`}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncTooMany", "{{binaryFunc `1` `2` `3`}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncBad0", "{{binaryFunc 1 2}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncBad1", "{{binaryFunc `1` 2}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncBad0", "{{varargsFunc 3}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncIntBad0", "{{varargsFuncInt}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncIntBad", "{{varargsFuncInt `x`}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncNullBad", "{{varargsFunc null}}",
-                "", null, true));
-        tests.add(new TestExec("field and method with the same name", "{{.sameName}}",
-                null, t, true));
-        tests.add(new TestExec("method with the same name as the field but with arguments", "{{.sameName 1}}",
-                null, t, true));
+        tests.add(new TestExec(".x", "{{.x}}", "x", ts, false));
+
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         FuncMap funcs = new FuncMap();
@@ -292,13 +86,24 @@ public class ExecTest {
                 "|", "|",
                 "(嗨)", "(世)"
         };
-        final String hello = "hello world";
-        class T {
-            public final String str = hello;
+        final String a = "msg";
+        final String b = "hello world";
+        class RecipientData {
+            public final String key = a;
+            public final String value = b;
+
+            @Override
+            public String toString() {
+                return "RecipientData{" +
+                        "key=" + key +
+                        ",value=" + value+'}';
+            }
         }
-        T val = new T();
+        RecipientData recipientData = new RecipientData();
+        List<RecipientData> val = new ArrayList<>();
+        val.add(recipientData);
         for (int i = 0; i < delimPairs.length; i += 2) {
-            String text = ".str";
+            String text = ".msg";
             String left = delimPairs[i];
             String trueLeft = left;
             String right = delimPairs[i + 1];
@@ -325,12 +130,11 @@ public class ExecTest {
                 fail(String.format("delim %s exec err %s",
                         left, e.getMessage()));
             }
-            assertEquals(hello + trueLeft, stream.toString());
+            assertEquals(b + trueLeft, stream.toString());
         }
     }
 
     @Test
-    @Ignore
     public void testMaxExecDepth() {
         Template tmpl = new Template("tmpl");
         try {
@@ -472,11 +276,11 @@ public class ExecTest {
         final String name;
         final String input;
         final String output;
-        final Object data;
+        final List<Object> data;
         final boolean hasError;
 
         TestExec(String name, String input, String output,
-                 Object data, boolean hasError) {
+                 List<Object> data, boolean hasError) {
             this.name = name;
             this.input = input;
             this.output = output;
