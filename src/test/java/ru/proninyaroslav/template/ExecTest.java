@@ -134,26 +134,26 @@ public class ExecTest {
         }
     }
 
-    @Test
-    public void testMaxExecDepth() {
-        Template tmpl = new Template("tmpl");
-        try {
-            tmpl.parse("{{template `tmpl` .}}");
-        } catch (Exception e) {
-            /* Ignore */
-        }
-        String got = "<null>";
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            tmpl.execute(stream, null);
-        } catch (Exception e) {
-            got = e.toString();
-        }
-        stream.reset();
-        final String want = "exceeded maximum template depth";
-        if (!got.contains(want))
-            fail(String.format("got error %s; want %s", got, want));
-    }
+//    @Test
+//    public void testMaxExecDepth() {
+//        Template tmpl = new Template("tmpl");
+//        try {
+//            tmpl.parse("{{template `tmpl` .}}");
+//        } catch (Exception e) {
+//            /* Ignore */
+//        }
+//        String got = "<null>";
+//        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//        try {
+//            tmpl.execute(stream, null);
+//        } catch (Exception e) {
+//            got = e.toString();
+//        }
+//        stream.reset();
+//        final String want = "exceeded maximum template depth";
+//        if (!got.contains(want))
+//            fail(String.format("got error %s; want %s", got, want));
+//    }
 
     static class T {
         public final boolean truth = true;
