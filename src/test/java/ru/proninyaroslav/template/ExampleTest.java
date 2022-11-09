@@ -16,9 +16,10 @@ public class ExampleTest {
         template.parse("Hello{{ for .recipientData }}, {{ .firstName }}{{ end }}");
         ExampleTest.Data data = new ExampleTest.Data();
         data.recipientData.add(Map.of("firstName", "John", "lastName", "Doe"));
+        data.recipientData.add(Map.of("firstName", "Jane", "lastName", "Fonda"));
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         template.execute(out, data);
-        assertEquals("Hello, John", out.toString());
+        assertEquals("Hello, John, Jane", out.toString());
     }
 
     @Test
@@ -31,7 +32,7 @@ public class ExampleTest {
     }
 
     static class Data {
-        private List<Map<String,String>> recipientData = new ArrayList<>();
+        private final List<Map<String,String>> recipientData = new ArrayList<>();
 
         public List<Map<String, String>> getRecipientData() {
             return recipientData;
