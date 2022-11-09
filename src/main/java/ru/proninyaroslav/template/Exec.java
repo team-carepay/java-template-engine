@@ -480,7 +480,7 @@ class Exec {
         }
 
         if (receiver instanceof Map) {
-            final Map map = (Map) receiver;
+            final Map<?,?> map = (Map<?,?>) receiver;
             if (map.containsKey(fieldName)) {
                 return map.get(fieldName);
             }
@@ -491,8 +491,8 @@ class Exec {
 
         // first try getter
         try {
-            PropertyDescriptor pd = new PropertyDescriptor(fieldName, receiver.getClass());
-            Method getter = pd.getReadMethod();
+            final PropertyDescriptor pd = new PropertyDescriptor(fieldName, receiver.getClass());
+            final Method getter = pd.getReadMethod();
             if (getter != null) {
                 return getter.invoke(receiver);
             }
