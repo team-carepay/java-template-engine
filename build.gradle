@@ -33,12 +33,16 @@ description = 'Java Template Engine'
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+compileJava {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << '-parameters'
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 publishing {
@@ -60,6 +64,11 @@ publishing {
                         id = 'diegourban'
                         name = 'Diego Leonardo Urban'
                         email = 'diego.urban88@gmail.com'
+                    }
+                    developer {
+                        id = 'blagerweij'
+                        name = 'Barry Lagerweij'
+                        email = 'blagerweij@gmail.com'
                     }
                     developer {
                         id = 'proninyaroslav'

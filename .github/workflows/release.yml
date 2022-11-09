@@ -16,7 +16,7 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
       - uses: actions/setup-java@v3
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'temurin'
       - uses: actions/cache@v2
         with:

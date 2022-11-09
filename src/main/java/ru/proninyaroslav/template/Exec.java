@@ -16,16 +16,21 @@
 
 package ru.proninyaroslav.template;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.PrintWriter;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import ru.proninyaroslav.template.exceptions.ExecException;
 
@@ -474,27 +479,37 @@ class Exec {
             return Array.getLength(receiver);
         }
 
-        final Method[] methods = receiver.getClass().getDeclaredMethods();
+        if (receiver instanceof Map) {
+            final Map<?,?> map = (Map<?,?>) receiver;
+            if (map.containsKey(fieldName)) {
+                return map.get(fieldName);
+            }
+        }
+
         Field field = null;
         boolean hasArgs = args != null && (args.size() > 1 || finalVal != null);
 
-        /* Find methods */
-        final List<Method> foundMethods = new ArrayList<>();
-        for (final Method method : methods) {
-            if (method.getName().equals(fieldName)) {
-                foundMethods.add(method);
+        // first try getter
+        try {
+            final PropertyDescriptor pd = new PropertyDescriptor(fieldName, receiver.getClass());
+            final Method getter = pd.getReadMethod();
+            if (getter != null) {
+                return getter.invoke(receiver);
             }
+        } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
+            // ignore
         }
 
-        /* Find field */
-        try {
-            field = receiver.getClass().getDeclaredField(fieldName);
-        } catch (NoSuchFieldException | SecurityException e) {
-            if (foundMethods.isEmpty()) {
-                errorf("can't evaluate field %s in class %s",
-                        fieldName, receiver.getClass().getName());
-            }
+        /* Find methods */
+        final List<Method> foundMethods = ClassUtils.findMethods(receiver.getClass(), fieldName);
+
+        if (!foundMethods.isEmpty()) {
+            return evalCall(dot, foundMethods, node, fieldName,
+                    args, finalVal, receiver);
+
         }
+        /* Find field */
+        field = ClassUtils.findField(receiver.getClass(), fieldName);
 
         if (field != null && !foundMethods.isEmpty()) {
             errorf("type %s has both field and method named %s",
@@ -502,16 +517,13 @@ class Exec {
             return null;
         }
 
-        if (!foundMethods.isEmpty()) {
-            return evalCall(dot, foundMethods, node, fieldName,
-                    args, finalVal, receiver);
-
-        } else if (field != null) {
+        if (field != null) {
             if (hasArgs) {
                 errorf("%s has arguments but cannot be invoked as method", fieldName);
                 return null;
             }
             try {
+                field.setAccessible(true);
                 return field.get(receiver);
 
             } catch (IllegalAccessException e) {
