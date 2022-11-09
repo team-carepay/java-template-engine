@@ -24,8 +24,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import ru.proninyaroslav.template.exceptions.ExecException;
 
@@ -475,6 +477,7 @@ class Exec {
         }
 
         final Method[] methods = receiver.getClass().getDeclaredMethods();
+        String fieldValue = null;
         Field field = null;
         boolean hasArgs = args != null && (args.size() > 1 || finalVal != null);
 
@@ -488,15 +491,28 @@ class Exec {
 
         /* Find field */
         try {
-            field = receiver.getClass().getDeclaredField(fieldName);
-        } catch (NoSuchFieldException | SecurityException e) {
+
+            Map<String, String> keyValues = new HashMap<>();
+            for(int i = 0; i < ((ArrayList) receiver).size(); i++){
+                if(((ArrayList) receiver).get(i).toString().contains("key") && ((ArrayList) receiver).get(i).toString().contains("value")){
+                    String data = ((ArrayList) receiver).get(i).toString().substring(18, ((ArrayList) receiver).get(i).toString().length() - 1).replace("value=", "");
+                    keyValues.put(data.split(",")[0], data.split(",")[1]);
+                }else {
+                    field = ((ArrayList) receiver).get(i).getClass().getDeclaredField(fieldName);
+                }
+
+            }
+            fieldValue = "null" == String.valueOf(keyValues.get(fieldName)) ? field.getName() : String.valueOf(keyValues.get(fieldName));
+        } catch (SecurityException e) {
             if (foundMethods.isEmpty()) {
                 errorf("can't evaluate field %s in class %s",
                         fieldName, receiver.getClass().getName());
             }
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
         }
 
-        if (field != null && !foundMethods.isEmpty()) {
+        if (fieldValue != null && !foundMethods.isEmpty()) {
             errorf("type %s has both field and method named %s",
                     receiver.getClass().toString(), fieldName);
             return null;
@@ -506,17 +522,14 @@ class Exec {
             return evalCall(dot, foundMethods, node, fieldName,
                     args, finalVal, receiver);
 
-        } else if (field != null) {
+        } else if (fieldValue != null) {
             if (hasArgs) {
                 errorf("%s has arguments but cannot be invoked as method", fieldName);
                 return null;
             }
             try {
-                return field.get(receiver);
+                return fieldValue;
 
-            } catch (IllegalAccessException e) {
-                errorf("%s is a non-public field of class %s",
-                        fieldName, receiver.getClass().getName());
             } catch (IllegalArgumentException e) {
                 errorf("can't evaluate field %s in class %s",
                         fieldName, receiver.getClass().getName());

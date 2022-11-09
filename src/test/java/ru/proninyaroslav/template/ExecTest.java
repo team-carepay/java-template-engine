@@ -16,472 +16,620 @@
 
 package ru.proninyaroslav.template;
 
-import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import ru.proninyaroslav.template.exceptions.ExecException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+/**
+ * Represents the state of an execution
+ */
 
-public class ExecTest {
-    @Test
-    public void testExec() {
-        List<TestExec> tests = new ArrayList<>();
-        T t = new T();
-        tests.add(new TestExec("empty", "", "", null, false));
-        tests.add(new TestExec("text", "hello world", "hello world",
-                null, false));
-        tests.add(new TestExec(".x", "{{.x}}", "x", t, false));
-        tests.add(new TestExec(".u.v", "{{.u.v}}", "v", t, false));
-        tests.add(new TestExec("map <one>", "{{.siMap.get `one`}}",
-                "1", t, false));
-        tests.add(new TestExec("dot int", "{{.}}", "123", 123, false));
-        tests.add(new TestExec("dot float", "{{.}}", "1.2", 1.2, false));
-        tests.add(new TestExec("dot boolean", "{{.}}", "true", true, false));
-        tests.add(new TestExec("dot string", "{{.}}", "hello world",
-                "hello world", false));
-        tests.add(new TestExec("dot int", "{{.}}", "123", 123, false));
-        tests.add(new TestExec("dot array", "{{.}}", "[1, 2, 3]",
-                new int[]{1, 2, 3}, false));
-        tests.add(new TestExec("dot object", "{{.}}", t.toString(),
-                t, false));
-        tests.add(new TestExec("$ int", "{{$}}", "123", 123, false));
-        tests.add(new TestExec("$.i", "{{$.i}}", "123", t, false));
-        tests.add(new TestExec("$.u.v", "{{$.u.v}}", "v", t, false));
-        tests.add(new TestExec("declare in action", "{{$x := $.u.v}}{{$x}}",
-                "v", t, false));
-        tests.add(new TestExec("simple assignment", "{{$x := 2}}{{$x = 3}}{{$x}}",
-                "3", t, false));
-        tests.add(new TestExec("nested assignment",
-                "{{$x := 2}}{{if true}}{{$x = 3}}{{end}}{{$x}}",
-                "3", t, false));
-        tests.add(new TestExec("nested assignment changes the last declaration",
-                "{{$x := 1}}{{if true}}{{$x := 2}}{{if true}}{{$x = 3}}{{end}}{{end}}{{$x}}",
-                "1", t, false));
-        tests.add(new TestExec("v.toString()", "{{.v}}", t.v.toString(),
-                t, false));
-        tests.add(new TestExec(".meth0", "{{.meth0}}", t.meth0(),
-                t, false));
-        tests.add(new TestExec(".meth1 123", "{{.meth1 123}}",
-                Integer.toString(t.meth1(123)), t, false));
-        tests.add(new TestExec(".meth1 .i", "{{.meth1 .i}}",
-                Integer.toString(t.meth1(t.i)), t, false));
-        tests.add(new TestExec(".meth2 1 .x", "{{.meth2 1 .x}}",
-                t.meth2(1, t.x), t, false));
-        tests.add(new TestExec(".meth2 1 `test`", "{{.meth2 1 `test`}}",
-                t.meth2(1, "test"), t, false));
-        tests.add(new TestExec(".meth3 null", "{{.meth3 null}}",
-                t.meth3(null), t, false));
-        tests.add(new TestExec("method on var", "{{if $x := .}}{{$x.meth2 1 $x.x}}{{end}}",
-                t.meth2(1, t.x), t, false));
-        tests.add(new TestExec("exec template", "{{execTemplate .}}",
-                "test template", t, false));
-        tests.add(new TestExec("binaryFunc", "{{binaryFunc `1` `2`}}",
-                T.binaryFunc("1", "2"), null, false));
-        tests.add(new TestExec("varargsFunc0", "{{varargsFunc}}",
-                T.varargsFunc(), null, false));
-        tests.add(new TestExec("varargsFunc2", "{{varargsFunc `he` `llo`}}",
-                T.varargsFunc("he", "llo"), null, false));
-        tests.add(new TestExec("varargsFuncInt", "{{varargsFuncInt 1 `he` `llo`}}",
-                T.varargsFuncInt(1, "he", "llo"), null, false));
-        tests.add(new TestExec("pipeline", "{{.meth0 | .meth2 1}}",
-                t.meth2(1, t.meth0()), t, false));
-        tests.add(new TestExec("pipeline func", "{{varargsFunc `llo` | varargsFunc `he`}}",
-                T.varargsFunc("he", T.varargsFunc("llo")),
-                t, false));
-        tests.add(new TestExec("parens in pipeline",
-                "{{printf `%d %d %d` (1) (2 | add 3) (add 4 (add 5 6))}}",
-                "1 5 15", null, false));
-        tests.add(new TestExec("parens: $ in paren", "{{($).x}}", "x",
-                t, false));
-        tests.add(new TestExec("parens: $.u in paren", "{{($.u).v}}", "v",
-                t, false));
-        tests.add(new TestExec("parens: $ in paren in pipe",
-                "{{($.x | print).length}}", "1",
-                t, false));
-        tests.add(new TestExec("if true", "{{if true}}TRUE{{end}}", "TRUE",
-                null, false));
-        tests.add(new TestExec("if false",
-                "{{if false}}TRUE{{else}}FALSE{{end}}",
-                "FALSE", null, false));
-        tests.add(new TestExec("if 1",
-                "{{if 1}}NON ZERO{{else}}ZERO{{end}}",
-                "NON ZERO", null, false));
-        tests.add(new TestExec("if 0",
-                "{{if 0}}NON ZERO{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("if 1.2",
-                "{{if 1.2}}NON ZERO{{else}}ZERO{{end}}",
-                "NON ZERO", null, false));
-        tests.add(new TestExec("if 0.0",
-                "{{if 0.0}}NON ZERO{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("if empty string",
-                "{{if ``}}NON EMPTY{{else}}EMPTY{{end}}",
-                "EMPTY", null, false));
-        tests.add(new TestExec("if string",
-                "{{if `test`}}NON EMPTY{{else}}EMPTY{{end}}",
-                "NON EMPTY", null, false));
-        tests.add(new TestExec("if $x with $y int",
-                "{{if $x := true}}{{with $y := .i}}{{$x}},{{$y}}{{end}}{{end}}",
-                "true,123", t, false));
-        tests.add(new TestExec("if $x with $x int",
-                "{{if $x := true}}{{with $x := .i}}{{$x}},{{end}}{{$x}}{{end}}",
-                "123,true", t, false));
-        tests.add(new TestExec("if else if",
-                "{{if false}}FALSE{{else if true}}TRUE{{end}}",
-                "TRUE", null, false));
-        tests.add(new TestExec("if else chain",
-                "{{if eq 1 3}}1{{else if eq 2 3}}2{{else if eq 3 3}}3{{end}}",
-                "3", null, false));
-        tests.add(new TestExec("with true",
-                "{{with true}}{{.}}{{end}}", "true",
-                null, false));
-        tests.add(new TestExec("with false",
-                "{{with false}}{{.}}{{else}}FALSE{{end}}",
-                "FALSE", null, false));
-        tests.add(new TestExec("with 1",
-                "{{with 1}}{{.}}{{else}}ZERO{{end}}",
-                "1", null, false));
-        tests.add(new TestExec("with 0",
-                "{{with 0}}{{.}}{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("with 1.2",
-                "{{with 1.2}}{{.}}{{else}}ZERO{{end}}",
-                "1.2", null, false));
-        tests.add(new TestExec("with 0.0",
-                "{{with 0.0}}{{.}}{{else}}ZERO{{end}}",
-                "ZERO", null, false));
-        tests.add(new TestExec("with empty string",
-                "{{with ``}}{{.}}{{else}}EMPTY{{end}}",
-                "EMPTY", null, false));
-        tests.add(new TestExec("with string",
-                "{{with `test`}}{{.}}{{else}}EMPTY{{end}}",
-                "test", null, false));
-        tests.add(new TestExec("with null arr",
-                "{{with .iArrNull}}{{.}}{{else}}NULL{{end}}",
-                "NULL", t, false));
-        tests.add(new TestExec("with arr",
-                "{{with .iArr}}{{.}}{{else}}NULL{{end}}",
-                "[1, 2, 3]", t, false));
-        tests.add(new TestExec("with $x int",
-                "{{with $x := .i}}{{$x}}{{end}}", "123",
-                t, false));
-        tests.add(new TestExec("with $x .u.v",
-                "{{with $x := $}}{{$x.u.v}}{{end}}", "v",
-                t, false));
-        tests.add(new TestExec("with variable and action",
-                "{{with $x := $}}{{$y := $.u.v}}{{$y}}{{end}}",
-                "v", t, false));
-        tests.add(new TestExec("for int[]",
-                "{{for .iArr}}-{{.}}-{{end}}",
-                "-1--2--3-", t, false));
-        tests.add(new TestExec("for null no else",
-                "{{for .iArrNull}}-{{.}}-{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for int[] else",
-                "{{for .iArr}}-{{.}}-{{else}}NULL{{end}}",
-                "-1--2--3-", t, false));
-        tests.add(new TestExec("for null else",
-                "{{for .iArrNull}}-{{.}}-{{else}}NULL{{end}}",
-                "NULL", t, false));
-        tests.add(new TestExec("for boolean[]",
-                "{{for .bArr}}-{{.}}-{{end}}",
-                "-true--false-", t, false));
-        tests.add(new TestExec("for range function",
-                "{{for range 3}}-{{.}}-{{end}}",
-                "-0--1--2-", null, false));
-        tests.add(new TestExec("for $x iArr",
-                "{{for $x := .iArr}}<{{$x}}>{{end}}",
-                "<1><2><3>", t, false));
-        tests.add(new TestExec("declare in for",
-                "{{for $x := .iArr}}<{{$foo := $x}}{{$x}}>{{end}}",
-                "<1><2><3>", t, false));
-        tests.add(new TestExec("for quick break",
-                "{{for .iArr}}{{break}}{{.}}{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for break after two",
-                "{{for range 10}}{{if ge . 2}}{{break}}{{end}}-{{.}}-{{end}}",
-                "-0--1-", null, false));
-        tests.add(new TestExec("for continue",
-                "{{for .iArr}}{{continue}}{{.}}{{end}}",
-                "", t, false));
-        tests.add(new TestExec("for continue condition",
-                "{{for .iArr}}{{if eq . 2}}{{continue}}{{end}}-{{.}}-{{end}}",
-                "-1--3-", t, false));
-        /* Errors */
-        tests.add(new TestExec("null action", "{{null}}", "", null, true));
-        tests.add(new TestExec("private field", "{{.priv}}", "", t, true));
-        tests.add(new TestExec("if null", "{{if null}}TRUE{{end}}", "",
-                null, true));
-        tests.add(new TestExec("arguments without function", "{{1 2}}",
-                "", null, true));
-        tests.add(new TestExec("number var as function", "{{$x := 1}}{{$x 2}}",
-                "", null, true));
-        tests.add(new TestExec("number var as function with pipeline",
-                "{{$x := 1}}{{2 | $x}}", "", null, true));
-        tests.add(new TestExec("binaryFuncTooFew", "{{binaryFunc `1`}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncTooMany", "{{binaryFunc `1` `2` `3`}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncBad0", "{{binaryFunc 1 2}}",
-                "", null, true));
-        tests.add(new TestExec("binaryFuncBad1", "{{binaryFunc `1` 2}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncBad0", "{{varargsFunc 3}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncIntBad0", "{{varargsFuncInt}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncIntBad", "{{varargsFuncInt `x`}}",
-                "", null, true));
-        tests.add(new TestExec("varargsFuncNullBad", "{{varargsFunc null}}",
-                "", null, true));
-        tests.add(new TestExec("field and method with the same name", "{{.sameName}}",
-                null, t, true));
-        tests.add(new TestExec("method with the same name as the field but with arguments", "{{.sameName 1}}",
-                null, t, true));
+class Exec {
+    private static final int maxExecDepth = 1500; /* Max nesting of templates */
+    final PrintWriter pw;
+    private Template tmpl;
+    private Node node;                           /* current node, for errors */
+    private List<Template.Variable> vars;   /* stack of variable values */
+    private int depth;                           /* the height of the stack of executing templates */
+    private int forDepth;                 /* nesting level of for loops */
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        FuncMap funcs = new FuncMap();
-        Map<String, String> map = new HashMap<>();
-        map.put("varargsFunc", "varargsFunc");
-        map.put("binaryFunc", "binaryFunc");
-        map.put("varargsFuncInt", "varargsFuncInt");
-        map.put("execTemplate", "execTemplate");
-        funcs.put(map, T.class);
+    Exec(final Template tmpl, final PrintWriter pw, final List<Template.Variable> vars) {
+        this.tmpl = tmpl;
+        this.pw = pw;
+        this.vars = vars;
+    }
 
-        for (TestExec test : tests) {
-            Template tmpl = new Template(test.name);
-            tmpl.addFuncs(funcs);
-            try {
-                tmpl.parse(test.input);
-            } catch (Exception e) {
-                fail(String.format("%s: %s", test.name, e));
+    private Exec(final Exec s) {
+        this.tmpl = s.tmpl;
+        this.pw = s.pw;
+        this.node = s.node;
+        this.vars = s.vars;
+        this.depth = s.depth;
+    }
+
+    void errorf(String format, final Object... args) throws ExecException {
+        final String name = Utils.doublePercent(tmpl.name);
+        if (node == null) {
+            format = String.format("template: %s: %s", name,
+                    String.format(format, args));
+        } else {
+            String location = tmpl.tree.errorLocation(node);
+            String context = tmpl.tree.errorContext(node);
+            format = String.format("template: %s: executing %s at <%s>: %s",
+                    location, name, Utils.doublePercent(context),
+                    String.format(format, args));
+        }
+
+        throw new ExecException(format);
+    }
+
+    private void push(final String name, final Object value) {
+        vars.add(new Template.Variable(name, value));
+    }
+
+    /**
+     * Pops the variable stack up to the mark
+     */
+    private void pop(final int mark) {
+        vars = new ArrayList<>(vars.subList(0, mark));
+    }
+
+    private int stackSize() {
+        return vars.size();
+    }
+
+    /**
+     * Overwrites the top-nth variable on the stack.
+     * Used by range iterations
+     */
+    private void setTopVar(final int n, final Object value) {
+        vars.get(vars.size() - n).value = value;
+    }
+
+    /**
+     * Overwrites the last declared variable with the given name.
+     * Used by variable assignments
+     */
+    private void setVar(final String name, final Object value) throws ExecException {
+        for (int i = stackSize() - 1; i >= 0; i--) {
+            if (vars.get(i).name.equals(name)) {
+                vars.get(i).value = value;
+                return;
             }
-            stream.reset();
+        }
+
+        errorf("undefined variable: %s", name);
+    }
+
+    private Object varValue(final String name) throws ExecException {
+        for (int i = vars.size() - 1; i >= 0; i--) {
+            if (vars.get(i).name.equals(name)) {
+                return vars.get(i).value;
+            }
+        }
+        errorf("undefined variable: %s", name);
+
+        return null;
+    }
+
+    /**
+     * Marks the state to be on node, for error reporting
+     */
+    private void at(final Node node) {
+        this.node = node;
+    }
+
+    private void printValue(final Object value) {
+        if (value != null && value.getClass().isArray()) {
+            int length = Array.getLength(value);
+            final Object[] arr = new Object[length];
+            for (int i = 0; i < length; i++) {
+                arr[i] = Array.get(value, i);
+            }
+            pw.print(Arrays.deepToString(arr));
+        } else {
+            pw.print(value);
+        }
+    }
+
+    private void notAFunction(final List<Node> args, final Object finalVal) throws ExecException {
+        if (args != null && (args.size() > 1 || finalVal != null)) {
+            errorf("can't give argument to non-function %s", args.get(0));
+        }
+    }
+
+    /**
+     * Returns the value of a number in a context where we don't know the type
+     * (If it was a method argument, we'd know what we need.)
+     * The syntax guides us to some extent.
+     */
+    private Object constant(final Node.Number num) {
+        at(num);
+        if (num.isFloat && !Utils.isHexConstant(num.text) &&
+                Utils.containsAny(num.text, ".eE")) {
+            return num.floatVal;
+        } else if (num.isInt) {
+            return num.intVal;
+        }
+
+        return null;
+    }
+
+    ForControl walk(final Object dot, final Node node) throws ExecException {
+        at(node);
+        if (node instanceof Node.Action) {
+            /* If the action declares variables, don't print the result */
+            final Node.Action nodeAction = (Node.Action) node;
+            final Object val = evalPipeline(dot, nodeAction.pipe);
+            if (nodeAction.pipe.vars.size() == 0) {
+                printValue(val);
+            }
+        } else if (node instanceof Node.If) {
+            final Node.If nodeIf = (Node.If) node;
+            return walkIfOrWith(Node.Type.IF, dot, nodeIf.pipe,
+                    nodeIf.sequence, nodeIf.elseSequence);
+        } else if (node instanceof Node.Sequence) {
+            for (final Node n : ((Node.Sequence) node).nodes) {
+                final ForControl c = walk(dot, n);
+                if (c != ForControl.NONE) {
+                    return c;
+                }
+            }
+        } else if (node instanceof Node.For) {
+            return walkFor(dot, (Node.For) node);
+        } else if (node instanceof Node.Template) {
+            walkTemplate(dot, (Node.Template) node);
+        } else if (node instanceof Node.Text) {
+            pw.write(((Node.Text) node).text);
+        } else if (node instanceof Node.With) {
+            final Node.With nodeWith = (Node.With) node;
+            return walkIfOrWith(Node.Type.WITH, dot, nodeWith.pipe,
+                    nodeWith.sequence, nodeWith.elseSequence);
+        } else if (node instanceof Node.Break) {
+            if (forDepth == 0) {
+                errorf("invalid break outside of for");
+            }
+            return ForControl.BREAK;
+        } else if (node instanceof Node.Continue) {
+            if (forDepth == 0) {
+                errorf("invalid continue outside of for");
+            }
+            return ForControl.CONTINUE;
+        } else {
+            errorf("unknown node: %s", node);
+        }
+
+        return ForControl.NONE;
+    }
+
+    /**
+     * Walks an 'if' or 'with' node.
+     * They are identical in behavior except that 'with' sets dot
+     */
+    private ForControl walkIfOrWith(final Node.Type type, final Object dot,
+                                    final Node.Pipe pipe, final Node.Sequence sequence,
+                                    final Node.Sequence elseSequence) throws ExecException {
+        int stackSize = stackSize();
+        try {
+            final Object val = evalPipeline(dot, pipe);
+            boolean truth = false;
             try {
-                tmpl.execute(stream, test.data);
-            } catch (Exception e) {
-                if (test.hasError)
-                    System.out.printf("%s: %s\n\t%s\n%n", test.name, test.input, e.getMessage());
+                truth = Utils.isTrue(val);
+            } catch (IllegalArgumentException e) {
+                errorf("if/with can't use %s", val);
+            }
+            if (truth) {
+                if (type == Node.Type.WITH) {
+                    return walk(val, sequence);
+                } else {
+                    return walk(dot, sequence);
+                }
+            } else if (elseSequence != null) {
+                return walk(dot, elseSequence);
+            }
+        } finally {
+            pop(stackSize);
+        }
+
+        return ForControl.NONE;
+    }
+
+    private ForControl walkFor(final Object dot, final Node.For f) throws ExecException {
+        at(f);
+        final int stackSize = stackSize();
+        try {
+            Object val = evalPipeline(dot, f.pipe);
+            int startStackSize = stackSize();
+            ++forDepth;
+            if (val != null) {
+                if (val instanceof Iterable) {
+                    final Iterator i = ((Iterable) val).iterator();
+                    if (i.hasNext()) {
+                        while (i.hasNext()) {
+                            if (forIteration(f, i.next(),
+                                    startStackSize) == ForControl.BREAK) {
+                                break;
+                            }
+                        }
+                        --forDepth;
+                        return ForControl.NONE;
+                    }
+                } else if (val.getClass().isArray()) {
+                    final int length = Array.getLength(val);
+                    if (length > 0) {
+                        for (int i = 0; i < length; i++) {
+                            if (forIteration(f, Array.get(val, i),
+                                    startStackSize) == ForControl.BREAK) {
+                                break;
+                            }
+                        }
+                        --forDepth;
+                        return ForControl.NONE;
+                    }
+                } else {
+                    errorf("for can't iterable over %s", val);
+                }
+            }
+            --forDepth;
+            if (f.elseSequence != null) {
+                return walk(dot, f.elseSequence);
+            }
+        } finally {
+            pop(stackSize);
+        }
+
+        return ForControl.NONE;
+    }
+
+    private ForControl forIteration(final Node.For f, final Object elem, final int startStackSize) throws ExecException {
+        if (f.pipe.vars.size() == 1) {
+            setTopVar(1, elem);
+        }
+        final ForControl c = walk(elem, f.sequence);
+        pop(startStackSize);
+
+        return c;
+    }
+
+    private void walkTemplate(Object dot, final Node.Template template) throws ExecException {
+        at(template);
+        final Template tmpl = this.tmpl.common.tmpl.get(template.name);
+        if (tmpl == null) {
+            errorf("template %s not defined", template.name);
+            return;
+        }
+        if (depth == maxExecDepth) {
+            errorf("exceeded maximum template depth (%d)", maxExecDepth);
+        }
+
+        /* Variables declared by the pipeline persist */
+        dot = evalPipeline(dot, template.pipe);
+        final Exec newState = new Exec(this);
+        newState.depth++;
+        newState.tmpl = tmpl;
+        /* Template invocations inherit no variables */
+        newState.vars = new ArrayList<>();
+        newState.vars.add(new Template.Variable("$", dot));
+        newState.walk(dot, tmpl.tree.root);
+    }
+
+    private Object evalPipeline(final Object dot, final Node.Pipe pipe) throws ExecException {
+        if (pipe == null) {
+            return null;
+        }
+
+        at(pipe);
+        Object val = null;
+        for (Node.Command cmd : pipe.cmds) {
+            val = evalCommand(dot, cmd, val);
+        }
+        for (Node.Assign var : pipe.vars) {
+            if (pipe.decl) {
+                push(var.ident.get(0), val);
+            } else {
+                setVar(var.ident.get(0), val);
+            }
+        }
+
+        return val;
+    }
+
+    private Object evalCommand(final Object dot, final Node.Command cmd, final Object finalVal) throws ExecException {
+        final Node firstWord = cmd.args.get(0);
+        if (firstWord instanceof Node.Field) {
+            return evalFieldNode(dot, (Node.Field) firstWord,
+                    cmd.args, finalVal);
+        } else if (firstWord instanceof Node.Chain) {
+            return evalChainNode(dot, (Node.Chain) firstWord,
+                    cmd.args, finalVal);
+        } else if (firstWord instanceof Node.Identifier) {
+            return evalFunction(dot, (Node.Identifier) firstWord,
+                    cmd, cmd.args, finalVal);
+        } else if (firstWord instanceof Node.Pipe) {
+            /*
+             * Parenthesized pipeline. The arguments are all
+             * inside the pipeline; finalValue is ignored
+             */
+            return evalPipeline(dot, (Node.Pipe) firstWord);
+        } else if (firstWord instanceof Node.Assign) {
+            return evalVariableNode(dot, (Node.Assign) firstWord,
+                    cmd.args, finalVal);
+        }
+
+        at(firstWord);
+        notAFunction(cmd.args, finalVal);
+        if (firstWord instanceof Node.Bool) {
+            return ((Node.Bool) firstWord).boolVal;
+        } else if (firstWord instanceof Node.Dot) {
+            return dot;
+        } else if (firstWord instanceof Node.Null) {
+            errorf("null is not a command");
+        } else if (firstWord instanceof Node.Number) {
+            return constant((Node.Number) firstWord);
+        } else if (firstWord instanceof Node.StringConst) {
+            return ((Node.StringConst) firstWord).text;
+        }
+
+        errorf("can't evaluate command %s", firstWord);
+
+        return null;
+    }
+
+    private Object evalFieldNode(final Object dot, final Node.Field field,
+                                 final List<Node> args, final Object finalVal) throws ExecException {
+        at(field);
+        return evalFieldChain(dot, dot, field, field.ident, args, finalVal);
+    }
+
+    private Object evalChainNode(final Object dot, final Node.Chain chain,
+                                 final List<Node> args, final Object finalVal) throws ExecException {
+        at(chain);
+        if (chain == null) {
+            errorf("indirection through explicit null in %s");
+            return null;
+        }
+        if (chain.field.size() == 0) {
+            errorf("internal error: no fields in evalChainNode");
+            return null;
+        }
+        /* In case (pipe).field1.field2 eval the pipeline, then the fields */
+        final Object pipe = evalArg(dot, chain.node);
+
+        return evalFieldChain(dot, pipe, chain, chain.field, args, finalVal);
+    }
+
+    private Object evalArg(final Object dot, final Node node) throws ExecException {
+        /* Type checking occurs during the method/function call */
+        at(node);
+        if (node instanceof Node.Dot) {
+            return dot;
+        } else if (node instanceof Node.Null) {
+            return null;
+        } else if (node instanceof Node.Field) {
+            final List<Node> args = new ArrayList<>();
+            args.add(node);
+            return evalFieldNode(dot, (Node.Field) node, args, null);
+        } else if (node instanceof Node.Assign) {
+            return evalVariableNode(dot, (Node.Assign) node, null, null);
+        } else if (node instanceof Node.Pipe) {
+            return evalPipeline(dot, (Node.Pipe) node);
+        } else if (node instanceof Node.Identifier) {
+            return evalFunction(dot, (Node.Identifier) node, node, null, null);
+        } else if (node instanceof Node.Chain) {
+            return evalChainNode(dot, (Node.Chain) node, null, null);
+        } else if (node instanceof Node.Bool) {
+            return ((Node.Bool) node).boolVal;
+        } else if (node instanceof Node.Number) {
+            return constant((Node.Number) node);
+        } else if (node instanceof Node.StringConst) {
+            return ((Node.StringConst) node).text;
+        }
+        errorf("can't handle %s for arg", node);
+
+        return null;
+    }
+
+    /**
+     * Evaluates .x.y.z possibly followed by arguments.
+     * dot is the environment in which to evaluate arguments,
+     * while receiver is the value being walked along the chain
+     */
+    private Object evalFieldChain(final Object dot, Object receiver, final Node node,
+                                  final List<String> ident, final List<Node> args,
+                                  final Object finalVal) throws ExecException {
+        final int n = ident.size();
+        for (int i = 0; i < n - 1; i++) {
+            receiver = evalField(dot, ident.get(i), node,
+                    null, null, receiver);
+        }
+        /* If it's a method, it gets the arguments */
+        return evalField(dot, ident.get(n - 1), node,
+                args, finalVal, receiver);
+    }
+
+    /**
+     * Evaluates an expression like .field or .field arg1 arg2.
+     * The finalVal argument represents the return value from the
+     * preceding value of the pipeline.
+     * Field and method with one name are not allowed
+     */
+    private Object evalField(final Object dot, final String fieldName, final Node node,
+                             final List<Node> args, final Object finalVal, final Object receiver) throws ExecException {
+        if (receiver == null) {
+            errorf("null pointer evaluating null.%s", fieldName);
+            return null;
+        }
+
+        /* Special case of calling an array length field */
+        if (receiver.getClass().isArray() && fieldName.equals("length")) {
+            return Array.getLength(receiver);
+        }
+
+        final Method[] methods = receiver.getClass().getDeclaredMethods();
+        String fieldValue = null;
+        Field field = null;
+        boolean hasArgs = args != null && (args.size() > 1 || finalVal != null);
+
+        /* Find methods */
+        final List<Method> foundMethods = new ArrayList<>();
+        for (final Method method : methods) {
+            if (method.getName().equals(fieldName)) {
+                foundMethods.add(method);
+            }
+        }
+
+        /* Find field */
+        try {
+
+            Map<String, String> keyValues = new HashMap<>();
+            for(int i = 0; i < ((ArrayList) receiver).size(); i++){
+                if(((ArrayList) receiver).get(i).toString().contains("key") && ((ArrayList) receiver).get(i).toString().contains("value")){
+                    String data = ((ArrayList) receiver).get(i).toString().substring(18, ((ArrayList) receiver).get(i).toString().length() - 1).replace("value=", "");
+                    keyValues.put(data.split(",")[0], data.split(",")[1]);
+                }else {
+                    field = ((ArrayList) receiver).get(i).getClass().getDeclaredField(fieldName);
+                }
+
+            }
+            fieldValue = "null" == String.valueOf(keyValues.get(fieldName)) ? field.getName() : String.valueOf(keyValues.get(fieldName));
+        } catch (SecurityException e) {
+            if (foundMethods.isEmpty()) {
+                errorf("can't evaluate field %s in class %s",
+                        fieldName, receiver.getClass().getName());
+            }
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (fieldValue != null && !foundMethods.isEmpty()) {
+            errorf("type %s has both field and method named %s",
+                    receiver.getClass().toString(), fieldName);
+            return null;
+        }
+
+        if (!foundMethods.isEmpty()) {
+            return evalCall(dot, foundMethods, node, fieldName,
+                    args, finalVal, receiver);
+
+        } else if (fieldValue != null) {
+            if (hasArgs) {
+                errorf("%s has arguments but cannot be invoked as method", fieldName);
+                return null;
+            }
+            try {
+                return fieldValue;
+
+            } catch (IllegalArgumentException e) {
+                errorf("can't evaluate field %s in class %s",
+                        fieldName, receiver.getClass().getName());
+            }
+        }
+
+        return null;
+    }
+
+    private Object evalFunction(final Object dot, final Node.Identifier node,
+                                final Node cmd, final List<Node> args, final Object finalVal) throws ExecException {
+        final String name = node.ident;
+        final List<Method> func = tmpl.findFunc(name);
+        if (func == null) {
+            errorf("%s is not a defined function", name);
+            return null;
+        }
+
+        return evalCall(dot, func, cmd, name, args, finalVal, null);
+    }
+
+    /**
+     * Executes method or function call.
+     * It takes as an argument an array of functions, since they can be overridden
+     */
+    private Object evalCall(final Object dot, final List<Method> func, final Node node,
+                            final String name, List<Node> args, final Object finalVal,
+                            final Object receiver) throws ExecException {
+        /* Zeroth arg is function name/node; not passed to function*/
+        if (args != null) {
+            args = new ArrayList<>(args.subList(1, args.size()));
+        }
+
+        final int numArgs = (args != null ? args.size() : 0);
+        final List<Object> argv = new ArrayList<>();
+        /* Add object that calling method (or not if method is static)*/
+        if (receiver != null) {
+            argv.add(receiver);
+        }
+        for (int i = 0; i < numArgs; i++) {
+            argv.add(evalArg(dot, args.get(i)));
+        }
+        /* Add final value if necessary */
+        if (finalVal != null) {
+            argv.add(finalVal);
+        }
+
+        Object result = null;
+        final List<String> err = new ArrayList<>();
+        final String errFmt = "\n(%s): %s";
+        /* Try to call method */
+        for (Method m : func) {
+            if (m.getReturnType() == void.class) {
+                err.add(String.format(errFmt, m,
+                        "can't call method/function with void return type"));
+                continue;
+            }
+            try {
+                MethodHandle mh = MethodHandles.lookup().unreflect(m);
+                result = mh.invokeWithArguments(argv);
+            } catch (Throwable e) {
+                if (e instanceof NullPointerException)
+                    err.add(String.format(errFmt, m, "assign null to primitive type"));
                 else
-                    fail(String.format("%s: unexpected error: %s", test.name, e.getMessage()));
-                continue;
+                    err.add(String.format(errFmt, m, e));
             }
-            if (test.hasError) {
-                System.out.printf("%s: expected error; got none%n", test.name);
-                continue;
+        }
+
+        if (result == null && !err.isEmpty()) {
+            at(node);
+            StringBuilder sb = new StringBuilder("error calling " + name + ":");
+            for (String e : err) {
+                sb.append(e);
             }
-            String result = stream.toString();
-            assertEquals(String.format("%s:", test.name),
-                    test.output, result);
+            errorf(sb.toString());
         }
+
+        return result;
     }
 
-    @Test
-    public void testDelims() {
-        String[] delimPairs = new String[]{
-                null, null,
-                "{{", "}}",
-                "<<", ">>",
-                "|", "|",
-                "(嗨)", "(世)"
-        };
-        final String hello = "hello world";
-        class T {
-            public final String str = hello;
+    private Object evalVariableNode(final Object dot, final Node.Assign var,
+                                    final List<Node> args, final Object finalVal) throws ExecException {
+        /*
+         * $x.field has $x as the first ident, field as the second.
+         * Eval the var, then the fields
+         */
+        at(var);
+        final Object val = varValue(var.ident.get(0));
+        final int size = var.ident.size();
+        if (size == 1) {
+            notAFunction(args, finalVal);
+            return val;
         }
-        T val = new T();
-        for (int i = 0; i < delimPairs.length; i += 2) {
-            String text = ".str";
-            String left = delimPairs[i];
-            String trueLeft = left;
-            String right = delimPairs[i + 1];
-            String trueRight = right;
-            if (left == null)
-                trueLeft = "{{";
-            if (right == null)
-                trueRight = "}}";
-            text = trueLeft + text + trueRight;
-            text += trueLeft + "/*comment*/" + trueRight;
-            text += trueLeft + "\"" + trueLeft + "\"" + trueRight;
-            Template tmpl = new Template("delims");
-            tmpl.setDelims(left, right);
-            try {
-                tmpl.parse(text);
-            } catch (Exception e) {
-                fail(String.format("delim %s text %s parse err %s",
-                        left, text, e));
-            }
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            try {
-                tmpl.execute(stream, val);
-            } catch (Exception e) {
-                fail(String.format("delim %s exec err %s",
-                        left, e.getMessage()));
-            }
-            assertEquals(hello + trueLeft, stream.toString());
-        }
+        return evalFieldChain(dot, val, var, var.ident.subList(1, size),
+                args, finalVal);
     }
 
-    @Test
-    @Ignore
-    public void testMaxExecDepth() {
-        Template tmpl = new Template("tmpl");
-        try {
-            tmpl.parse("{{template `tmpl` .}}");
-        } catch (Exception e) {
-            /* Ignore */
-        }
-        String got = "<null>";
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            tmpl.execute(stream, null);
-        } catch (Exception e) {
-            got = e.toString();
-        }
-        stream.reset();
-        final String want = "exceeded maximum template depth";
-        if (!got.contains(want))
-            fail(String.format("got error %s; want %s", got, want));
-    }
-
-    static class T {
-        public final boolean truth = true;
-        public final int i = 123;
-        public final String x = "x";
-        public double floatZero;
-        /* Nested class */
-        public U u = new U("v");
-        /* Class with toString() method */
-        public final V v = new V(123);
-        /* Arrays */
-        public int[] iArr = new int[]{1, 2, 3};
-        public int[] iArrNull;
-        public boolean[] bArr = new boolean[]{true, false};
-        public List<Integer> iList = newIList();
-        /* Maps */
-        public Map<String, Integer> siMap = newSiMap();
-        public Map<String, Integer> siMapNull;
-        /* Template to test evaluation of templates */
-        public final Template tmpl = newTmpl();
-        public final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        public int sameName = 1;
-        /* Private field; cannot be accessed by template */
-        private int priv;
-
-        public static String binaryFunc(String s1, String s2) {
-            return String.format("[%s=%s]", s1, s2);
-        }
-
-        public static String varargsFunc(String... s) {
-            return "<" + Utils.join("+", s) + ">";
-        }
-
-        public static String varargsFuncInt(int i, String... s) {
-            return i + "=<" + Utils.join("+", s) + ">";
-        }
-
-        public static String execTemplate(T t) throws Exception {
-            t.tmpl.execute(t.stream, null);
-
-            return t.stream.toString();
-        }
-
-        private List<Integer> newIList() {
-            List<Integer> list = new ArrayList<>();
-            list.add(1);
-            list.add(2);
-            list.add(3);
-
-            return list;
-        }
-
-        private Map<String, Integer> newSiMap() {
-            Map<String, Integer> map = new HashMap<>();
-            map.put("one", 1);
-            map.put("two", 2);
-            map.put("three", 3);
-
-            return map;
-        }
-
-        private Template newTmpl() {
-            Template tmpl = new Template("x");
-            try {
-                tmpl.parse("test template");
-            } catch (Exception e) {
-                /* Ignore */
-            }
-
-            return tmpl;
-        }
-
-        public String meth0() {
-            return "m0";
-        }
-
-        public int meth1(int a) {
-            return a;
-        }
-
-        public String meth2(int a, String b) {
-            return String.format("meth2: %d %s", a, b);
-        }
-
-        public String meth3(Object obj) {
-            return String.format("meth3: %s", obj);
-        }
-
-        public int sameName() {
-            return 1;
-        }
-
-        public int sameName(int i) {
-            return i;
-        }
-    }
-
-    static class U {
-        public final String v;
-
-        U(String v) {
-            this.v = v;
-        }
-    }
-
-    static class V {
-        public final int j;
-
-        V(int j) {
-            this.j = j;
-        }
-
-        @Override
-        public String toString() {
-            return "V{" + "j=" + j + '}';
-        }
-    }
-
-    public static class TestExec {
-        final String name;
-        final String input;
-        final String output;
-        final Object data;
-        final boolean hasError;
-
-        TestExec(String name, String input, String output,
-                 Object data, boolean hasError) {
-            this.name = name;
-            this.input = input;
-            this.output = output;
-            this.data = data;
-            this.hasError = hasError;
-        }
+    enum ForControl {
+        NONE,        /* no action */
+        BREAK,        /* break out of for */
+        CONTINUE    /* continues next for iteration */
     }
 }
