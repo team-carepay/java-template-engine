@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import ru.proninyaroslav.template.exceptions.ExecException;
 
@@ -476,6 +477,13 @@ class Exec {
         /* Special case of calling an array length field */
         if (receiver.getClass().isArray() && fieldName.equals("length")) {
             return Array.getLength(receiver);
+        }
+
+        if (receiver instanceof Map) {
+            final Map map = (Map) receiver;
+            if (map.containsKey(fieldName)) {
+                return map.get(fieldName);
+            }
         }
 
         Field field = null;
