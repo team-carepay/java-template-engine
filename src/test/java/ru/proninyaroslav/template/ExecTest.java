@@ -214,6 +214,9 @@ public class ExecTest {
         tests.add(new TestExec("for continue condition",
                 "{{for .iArr}}{{if eq . 2}}{{continue}}{{end}}-{{.}}-{{end}}",
                 "-1--3-", t, false));
+        tests.add(new TestExec("record",
+                "{{.w.name}}",
+                "example", t, false));
         /* Errors */
         tests.add(new TestExec("null action", "{{null}}", "", null, true));
         tests.add(new TestExec("private field", "{{.priv}}", "", t, true));
@@ -374,6 +377,7 @@ public class ExecTest {
         public int sameName = 1;
         /* Private field; cannot be accessed by template */
         private int priv;
+        private W w = new W("example");
 
         public static String binaryFunc(String s1, String s2) {
             return String.format("[%s=%s]", s1, s2);
@@ -445,6 +449,10 @@ public class ExecTest {
         public int sameName(int i) {
             return i;
         }
+
+        public W getW() {
+            return w;
+        }
     }
 
     static class U {
@@ -466,6 +474,9 @@ public class ExecTest {
         public String toString() {
             return "V{" + "j=" + j + '}';
         }
+    }
+
+    record W ( String name) {
     }
 
     public static class TestExec {
