@@ -479,8 +479,9 @@ class Exec {
             return Array.getLength(receiver);
         }
 
-        if (receiver instanceof Map) {
-            final Map<?,?> map = (Map<?,?>) receiver;
+        if (receiver instanceof ArrayList) {
+            List mapList = ((List) receiver);
+            Map<?,?> map = (Map<?, ?>) mapList.get(0);
             if (map.containsKey(fieldName)) {
                 return map.get(fieldName);
             }
