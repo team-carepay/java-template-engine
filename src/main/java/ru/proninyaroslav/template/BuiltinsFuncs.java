@@ -510,7 +510,7 @@ public class BuiltinsFuncs {
     /**
      * Uses URL Encoding for it's argument
      *
-     * @param args arguments
+     * @param arg arguments
      * @return formatted string
      */
     public static String urlencode(final Object arg) throws UnsupportedEncodingException {
