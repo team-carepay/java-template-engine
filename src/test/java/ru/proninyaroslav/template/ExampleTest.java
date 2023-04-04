@@ -31,6 +31,15 @@ public class ExampleTest {
         assertEquals("Hello John", out.toString());
     }
 
+    @Test
+    public void testPipeline() throws Exception {
+        Template template = new Template("example");
+        template.parse("Hello {{ .email | urlencode }}");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        template.execute(out, Map.of("email", "test+user@carepay.com"));
+        assertEquals("Hello test%2Buser%40carepay.com", out.toString());
+    }
+
     static class Data {
         private final List<Map<String,String>> recipientData = new ArrayList<>();
 
