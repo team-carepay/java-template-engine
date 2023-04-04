@@ -16,7 +16,9 @@
 
 package ru.proninyaroslav.template;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class BuiltinsFuncs {
         builtins.put("or", "or");
         builtins.put("and", "and");
         builtins.put("not", "not");
+
+        builtins.put("urlencode", "urlencode");
 
         fm.put(builtins, BuiltinsFuncs.class);
 
@@ -502,5 +506,19 @@ public class BuiltinsFuncs {
                 throw new IllegalArgumentException("no such an operation " + op);
         }
     }
+
+    /**
+     * Uses URL Encoding for it's argument
+     *
+     * @param args arguments
+     * @return formatted string
+     */
+    public static String urlencode(final Object arg) throws UnsupportedEncodingException {
+        if (arg == null) {
+            return null;
+        }
+        return URLEncoder.encode(arg.toString(), "UTF-8");
+    }
+
 }
 
