@@ -274,6 +274,8 @@ println
 range
 	Generate number sequence from 0 (or start value if defined)
 	to stop with a given step (default 1)
+urlencode
+    Escapes the first argument, so that it's safe to be used in URLs
 ```
 
 The boolean functions take any zero value to be false and a non-zero value to be true.
