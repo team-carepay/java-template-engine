@@ -524,7 +524,7 @@ public class BuiltinsFuncs {
     /**
      * Supports default value in case variable is null
      *
-     * @param arg arguments
+     * @param arg1 the default value
      * @return formatted string
      */
     public static String defaultValue(final Object arg1) {
@@ -534,7 +534,8 @@ public class BuiltinsFuncs {
     /**
      * Supports default value in case variable is null
      *
-     * @param arg arguments
+     * @param arg1 the default value (will not be used)
+     * @param arg2 the pipeline value (will be used)
      * @return formatted string
      */
     public static String defaultValue(final Object arg1, final Object arg2) {
