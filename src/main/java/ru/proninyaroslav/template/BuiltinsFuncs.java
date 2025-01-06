@@ -52,6 +52,7 @@ public class BuiltinsFuncs {
         builtins.put("not", "not");
 
         builtins.put("urlencode", "urlencode");
+        builtins.put("default", "defaultValue");
 
         fm.put(builtins, BuiltinsFuncs.class);
 
@@ -520,5 +521,24 @@ public class BuiltinsFuncs {
         return URLEncoder.encode(arg.toString(), "UTF-8");
     }
 
+    /**
+     * Supports default value in case variable is null
+     *
+     * @param arg arguments
+     * @return formatted string
+     */
+    public static String defaultValue(final Object arg1) {
+        return String.valueOf(arg1);
+    }
+
+    /**
+     * Supports default value in case variable is null
+     *
+     * @param arg arguments
+     * @return formatted string
+     */
+    public static String defaultValue(final Object arg1, final Object arg2) {
+        return String.valueOf(arg2);
+    }
 }
 
