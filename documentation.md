@@ -275,7 +275,9 @@ range
 	Generate number sequence from 0 (or start value if defined)
 	to stop with a given step (default 1)
 urlencode
-    Escapes the first argument, so that it's safe to be used in URLs
+    Escapes the first argument, so that it's safe to be used in URLs. e.g. `{{ .email | urlencode }}`
+default
+    In case the pipeline value is missing, use a default value. e.g. `{{ .total | default "0" }}`
 ```
 
 The boolean functions take any zero value to be false and a non-zero value to be true.
