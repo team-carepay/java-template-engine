@@ -25,4 +25,3 @@ public class ParseException extends Exception {
         super(msg);
     }
 }
-
