@@ -31,8 +31,8 @@ jobs:
           -Psigning.keyId=${{ secrets.GPG_KEY_ID }} \
           -Psigning.password="${{ secrets.GPG_PASSWORD }}" \
           -Psigning.secretKeyRingFile=secring.gpg \
-          -PgithubUsername=${{ secrets.RELEASE_USERNAME }} \
-          -PgithubPassword="${{ secrets.RELEASE_TOKEN }}"
+          -PgithubUsername=$GITHUB_ACTOR \
+          -PgithubPassword=$GITHUB_TOKEN
     - name: Create Release
       uses: softprops/action-gh-release@v3
       with:
