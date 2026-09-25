@@ -1,4 +1,4 @@
-default_install_hook_types: [ pre-commit, commit-msg ]
+default_install_hook_types: [ pre-commit ]
 default_stages: [ pre-commit ]
 
 repos:
@@ -22,13 +22,3 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks
-  # No checkstyle here on purpose: this repo is a fork of an upstream project
-  # (package ru.proninyaroslav.template) and its vendored source has ~90
-  # violations of the CarePay style. Linting it would block any commit that
-  # touches upstream code. Same reasoning as system-user-controller.
-  - repo: https://github.com/team-carepay/pre-commit-hooks
-    rev: v2.1.0
-    hooks:
-      - id: check-jira-issue
-        args: [ --host, carepay.atlassian.net ]
-      - id: append-jira-issue
