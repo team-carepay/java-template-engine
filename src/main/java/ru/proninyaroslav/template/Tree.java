@@ -998,4 +998,3 @@ public class Tree {
         return new Node.Template(this, pos, name, pipe);
     }
 }
-

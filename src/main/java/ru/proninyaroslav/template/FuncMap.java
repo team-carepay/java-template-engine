@@ -89,4 +89,3 @@ public class FuncMap {
         funcs.put(alias, found);
     }
 }
-
